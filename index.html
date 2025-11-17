@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- CONSOLIDATED STYLES FROM style.css -->
+    <!-- CONSOLIDATED STYLES -->
     <style>
         /* -------------------------------------------------------------------------- */
         /* THEME DEFINITIONS */
@@ -67,19 +67,48 @@
             font-size: 16px;
             background-color: var(--bg-color);
             color: var(--text-color);
+            padding: 20px;
         }
 
         .hidden { display: none !important; }
 
         /* Card and Container Styles */
-        .container {
-            max-width: 800px;
-            width: 95%;
-            padding: 20px;
-            background-color: var(--bg-color);
+        .main-container {
+            max-width: 1200px; /* Increased max width */
+            width: 100%;
+            height: 90vh; /* Fixed height for the whole combat view */
+            display: grid;
+            /* Layout: 70% for Visual Arena, 30% for Combat Panel */
+            grid-template-columns: 2fr 1fr; 
+            gap: 20px;
+        }
+
+        /* The Visual Arena (New Left Slot) */
+        #visual-arena {
+            background-color: var(--status-bar-bg);
             border: 2px solid var(--border-color);
             border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .visual-placeholder {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            opacity: 0.6;
+            text-align: center;
+        }
+        
+        /* Combat Panel (Right Side) */
+        #combat-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .card {
@@ -87,10 +116,25 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr; /* Stack columns vertically */
+                height: auto;
+                overflow-y: auto;
+            }
+            #visual-arena {
+                min-height: 250px; /* Smaller visual area on mobile */
+            }
+            body {
+                padding: 10px;
+                height: auto;
+            }
+        }
+        
         /* Text and Typography */
         h1, h2 {
             color: var(--primary-color);
@@ -243,27 +287,14 @@
             cursor: pointer;
             box-shadow: none;
         }
-
-        .theme-selector h3 {
-            margin-top: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 5px;
-        }
-
-        .theme-selector button {
-            display: block;
-            width: 100%;
-            margin: 5px 0;
-            padding: 8px;
-        }
-
+        
     </style>
 </head>
 <body class="default-theme flex-col">
 
     <!-- Menu Screen -->
     <div id="menu-screen" class="min-h-screen flex flex-col items-center justify-center p-4 w-full">
-        <div class="container text-center">
+        <div class="container w-full max-w-sm text-center card">
             <h1 class="text-5xl font-extrabold mb-8">Chronicles of Heroes</h1>
             <div class="space-y-4">
                 <button id="new-game-btn" class="w-64">New Game</button>
@@ -275,7 +306,7 @@
 
     <!-- Character Select Screen -->
     <div id="character-select-screen" class="hidden min-h-screen flex flex-col items-center p-4 w-full">
-        <div class="container">
+        <div class="container w-full max-w-4xl card">
             <h2 class="text-3xl mt-4 mb-6">Select Your Hero</h2>
             <div id="char-select-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                 <!-- Character Cards Rendered Here -->
@@ -283,46 +314,58 @@
         </div>
     </div>
 
-    <!-- Combat Arena -->
-    <div id="game-container" class="hidden container">
-        <h2 class="text-3xl mb-6">Combat Arena</h2>
+    <!-- Combat Arena - Now uses the main-container grid -->
+    <div id="game-container" class="hidden main-container">
         
-        <!-- Status Bars -->
-        <div class="flex justify-between space-x-4 mb-6">
-            <!-- Player Status -->
-            <div class="w-1/2 card">
-                <h3 id="player-name" class="text-xl mb-2">Player</h3>
-                <div class="hp-bar-container">
-                    <div id="player-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
-                </div>
-                <p id="player-hp-text" class="hp-text">100/100</p>
-                <p id="player-status-text" class="status-text italic"></p>
+        <!-- VISUAL ARENA (Left Column) -->
+        <div id="visual-arena">
+            <div class="visual-placeholder">
+                Visual Arena for animations and character art goes here!
             </div>
-
-            <!-- Enemy Status -->
-            <div class="w-1/2 card">
-                <h3 id="enemy-name" class="text-xl mb-2 text-right">Enemy</h3>
-                <div class="hp-bar-container">
-                    <div id="enemy-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
-                </div>
-                <p id="enemy-hp-text" class="hp-text">80/80</p>
-                <p id="enemy-status-text" class="status-text italic"></p>
-            </div>
+            <!-- Future animation/image rendering element -->
+            <div id="animation-display"></div>
         </div>
+        
+        <!-- COMBAT PANEL (Right Column) - Consolidated Game UI -->
+        <div id="combat-panel">
+            
+            <!-- Status Bars -->
+            <div class="flex justify-between space-x-4">
+                <!-- Player Status -->
+                <div class="w-1/2 card">
+                    <h3 id="player-name" class="text-xl mb-2">Player</h3>
+                    <div class="hp-bar-container">
+                        <div id="player-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                    </div>
+                    <p id="player-hp-text" class="hp-text">100/100</p>
+                    <p id="player-status-text" class="status-text italic"></p>
+                </div>
 
-        <!-- Combat Log -->
-        <div class="card mb-6">
-            <h4 class="text-lg font-semibold mb-2">Combat Log</h4>
-            <div id="combat-log">
-                <!-- Log entries here -->
+                <!-- Enemy Status -->
+                <div class="w-1/2 card">
+                    <h3 id="enemy-name" class="text-xl mb-2 text-right">Enemy</h3>
+                    <div class="hp-bar-container">
+                        <div id="enemy-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                    </div>
+                    <p id="enemy-hp-text" class="hp-text">80/80</p>
+                    <p id="enemy-status-text" class="status-text italic"></p>
+                </div>
             </div>
-        </div>
 
-        <!-- Action Panel -->
-        <div class="card">
-            <h4 id="dialogue-text" class="text-lg font-semibold mb-4 text-center">Choose your action:</h4>
-            <div id="action-buttons" class="flex flex-wrap gap-3 justify-center">
-                <!-- Buttons rendered here -->
+            <!-- Combat Log -->
+            <div class="card flex-grow" style="min-height: 250px;">
+                <h4 class="text-lg font-semibold mb-2">Combat Log (Turn: <span id="turn-counter">1</span>)</h4>
+                <div id="combat-log">
+                    <!-- Log entries here -->
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="card">
+                <h4 id="dialogue-text" class="text-lg font-semibold mb-4 text-center">Choose your action:</h4>
+                <div id="action-buttons" class="flex flex-wrap gap-3 justify-center">
+                    <!-- Buttons rendered here -->
+                </div>
             </div>
         </div>
     </div>
@@ -374,6 +417,7 @@
         const dialogueText = $('dialogue-text');
         const actionButtonsDiv = $('action-buttons');
         const combatLog = $('combat-log');
+        const turnCounter = $('turn-counter');
 
         const playerStatus = {
             name: $('player-name'),
@@ -396,12 +440,12 @@
         function log(message, className='log-entry') {
             const p = document.createElement('p');
             p.className = `log-entry ${className}`;
-            p.textContent = `[T${gameState.turn}] ${message}`;
+            p.textContent = message;
             combatLog.prepend(p);
             while(combatLog.children.length > 50) combatLog.removeChild(combatLog.lastChild);
         }
 
-        // ----------------- CONSOLIDATED CHARACTER DATA (from characters.js) -----------------
+        // ----------------- CONSOLIDATED CHARACTER DATA -----------------
 
         const Characters = [
             // --- 1. Striker (Slow Start: Coin Scaler) ---
@@ -413,6 +457,7 @@
                     maxHP: 110,
                     defense: 2,
                     level: 1,
+                    speed: 3,
                     // Unique state tracking:
                     consecutive_rounds: 0, 
                     effects: [],
@@ -453,6 +498,7 @@
                     maxHP: 130,
                     defense: 3,
                     level: 1,
+                    speed: 1,
                     grappleDie: 8,
                     isGrappling: false,
                     effects: [],
@@ -497,11 +543,12 @@
             {
                 id: 'shutenmaru',
                 name: 'Shuten-Maru',
-                description: 'Undying psycho demon who utilizes outbursts of divine power',
+                description: 'A swift, ghostly fighter who converts damage taken into healing.',
                 baseStats: {
                     maxHP: 100,
                     defense: 1,
                     level: 1,
+                    speed: 4,
                     lastDamageTaken: 0, // Unique state tracking
                     effects: [],
                 },
@@ -541,6 +588,7 @@
                     maxHP: 105,
                     defense: 2,
                     level: 1,
+                    speed: 2,
                     effects: [],
                     gender: 'Male',
                     triSwordState: 'Scythe', // Tracks current weapon form
@@ -597,14 +645,7 @@
             ]
         };
 
-        function getCharacterTemplate(id) {
-            return Characters.find(c => c.id === id);
-        }
-
         // ----------------- HANDLER MODULE: UNIQUE EFFECT LOGIC -----------------
-        // This is the core of the modular pattern, keeping all character-specific
-        // code separate from the main Combat engine.
-
         const UniqueEffectHandlers = {
 
             // --- STRIKER Handlers ---
@@ -623,9 +664,8 @@
                 attacker.baseStats.effects.push('NegateNextHit');
                 log(`${attacker.name} phases and will negate the next incoming hit.`, 'log-special');
             },
-            // This runs after Shuten-Maru lands a hit
+            
             checkShutenMaruHeal(attacker, ability, target, diceRoll) {
-                // If the d8 roll was an 8 (Chrono-Fist trigger)
                 if (diceRoll === 8) {
                     const heal = attacker.baseStats.lastDamageTaken;
                     if (heal > 0) {
@@ -669,11 +709,9 @@
                 }
                 return 0;
             },
-            // Resolver to find the current active ability template
+            
             resolveZectusDynamicAttack(attacker) {
                 const state = attacker.baseStats.triSwordState;
-                
-                // Manually define the sub-abilities since they were removed from the array
                 const subAbilities = {
                     'Scythe': { name: 'Tri-Sword: Scythe', type: 'ATTACK', damageType: 'Necrotic', baseAttack: 6, dice: 8, coins: 1 },
                     'Trident': { name: 'Tri-Sword: Trident', type: 'ATTACK', damageType: 'Physical', baseAttack: 7, dice: 10, coins: 1 },
@@ -690,7 +728,6 @@
                 let next = (idx + 1) % weapons.length;
                 attacker.baseStats.triSwordState = weapons[next];
                 
-                // Apply switch damage (as per user's ability description)
                 const damage = ability.baseAttack || 2;
                 target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - damage);
                 
@@ -699,7 +736,6 @@
 
             // --- GENERIC Handlers ---
             applyDefenseBonus(attacker, ability, target) {
-                // Goblin's Defensive Crouch
                 attacker.baseStats.effects.push('DefensePlusTwo');
                 log(`${attacker.name} takes a Defensive Stance! (+2 Defense)`, 'log-special');
             }
@@ -708,27 +744,23 @@
         // ----------------- ABILITY TYPE HANDLERS -----------------
         const AbilityTypeHandlers = {
             ATTACK: (attacker, ability, target, diceRoll) => {
-                // Pre-Damage Status Check (e.g., NegateNextHit)
                 if (target.baseStats.effects.includes('NegateNextHit')) { 
                     log(`${target.name} Phases! Negating hit.`, 'log-win'); 
                     target.baseStats.effects = target.baseStats.effects.filter(e => e !== 'NegateNextHit'); 
                     return; 
                 }
 
-                // 1. Calculate Coin Bonus
                 const coinBonus = rollCoins(ability.coins || 0);
-
-                // 2. Calculate Damage
-                let dmg = Math.max(0, (ability.baseAttack || 0) + coinBonus - target.baseStats.defense);
+                let defense = target.baseStats.defense;
+                if(target.baseStats.effects.includes('DefensePlusTwo')) defense += 2;
                 
-                // Save damage taken for Shuten-Maru
+                let dmg = Math.max(0, (ability.baseAttack || 0) + coinBonus - defense);
+                
                 if (target.id === 'shutenmaru') target.baseStats.lastDamageTaken = dmg;
 
-                // 3. Apply Damage
                 target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - dmg);
-                log(`${attacker.name} hits for ${dmg} (${ability.damageType})`, 'log-damage');
+                log(`${attacker.name} attacks with ${ability.name}. Hits for ${dmg} (${ability.damageType})`, 'log-damage');
 
-                // 4. Post-Damage/Status Application
                 Status.resolvePostAction(attacker, ability, target, diceRoll);
             },
 
@@ -744,7 +776,7 @@
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
                     UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
                 } else {
-                    log(`${attacker.name} uses a generic special ability, but nothing happens!`);
+                    log(`${attacker.name} uses a generic special ability.`);
                 }
             },
             
@@ -757,12 +789,9 @@
             },
 
             DYNAMIC_ATTACK: (attacker, ability, target) => {
-                // DYNAMIC_ATTACK is a resolver that calls an ATTACK handler
                 if (ability.resolver && UniqueEffectHandlers[ability.resolver]) {
-                    // This resolves the DYNAMIC ability to an actual ATTACK ability template
                     const resolvedAbility = UniqueEffectHandlers[ability.resolver](attacker, ability);
                     
-                    // Re-execute as a standard ATTACK
                     AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, rollDie(resolvedAbility.dice));
                 }
             }
@@ -772,26 +801,21 @@
         // ----------------- STATUS MECHANICS -----------------
         const Status = {
             resolvePostAction: (attacker, ability, target, diceRoll = null) => {
-                // 1. Apply Status effect defined in the ability (e.g., Stagger)
                 if (ability.statusApplied && !target.baseStats.effects.includes(ability.statusApplied)) {
                     target.baseStats.effects.push(ability.statusApplied);
                     log(`${target.name} is inflicted with ${ability.statusApplied}!`, 'log-special');
                 }
 
-                // 2. Run post-damage/post-action handler (e.g., Shuten-Maru heal check)
                 if (ability.postDamageHandler && UniqueEffectHandlers[ability.postDamageHandler]) {
                     UniqueEffectHandlers[ability.postDamageHandler](attacker, ability, target, diceRoll);
                 }
                 
-                // 3. Run post-execution handler (e.g., Balter's Piledriver status cleanup)
                 if (ability.postExecutionHandler && UniqueEffectHandlers[ability.postExecutionHandler]) {
                     UniqueEffectHandlers[ability.postExecutionHandler](attacker, ability, target);
                 }
             },
 
-            // Runs at the start of the turn for cleanup
             resolveTurnStart: (character) => {
-                // Remove temporary status effects (they should be cleared at turn start)
                 character.baseStats.effects = character.baseStats.effects.filter(e => 
                     e !== 'DefensePlusTwo' && e !== 'Stagger'
                 );
@@ -805,18 +829,15 @@
             executeAction(attacker, ability, target, diceRoll = null) {
                 if (!ability || ability.type === 'NONE') return;
 
-                // Pre-Execution Check: Does this ability require a specific status on the target?
                 if (ability.requiredTargetStatus && !target.baseStats.effects.includes(ability.requiredTargetStatus)) {
                     log(`${attacker.name}'s ${ability.name} failed: Target is not ${ability.requiredTargetStatus}.`);
                     return;
                 }
 
-                // Standard ATTACKs need a dice roll for the handler (Shuten-Maru)
                 if (ability.type === 'ATTACK' && !diceRoll) {
                     diceRoll = rollDie(ability.dice || 1);
                 }
 
-                // Delegate execution to the appropriate Ability Type Handler
                 if (AbilityTypeHandlers[ability.type]) {
                     AbilityTypeHandlers[ability.type](attacker, ability, target, diceRoll);
                 } else {
@@ -832,7 +853,13 @@
                 let pClashBonus = 0;
                 if (player.uniquePassive?.onClashRoll) {
                     const handlerName = player.uniquePassive.onClashRoll;
-                    pClashBonus += UniqueEffectHandlers[handlerName](player, enemy); // Pass both for Zectus
+                    pClashBonus += UniqueEffectHandlers[handlerName](player, enemy);
+                }
+                // Also check enemy passive (for Zectus vs Female targets)
+                let eClashBonus = 0;
+                if (enemy.uniquePassive?.onClashRoll) {
+                    const handlerName = enemy.uniquePassive.onClashRoll;
+                    eClashBonus += UniqueEffectHandlers[handlerName](enemy, player);
                 }
                 
                 // 2. Perform Rolls
@@ -840,7 +867,7 @@
                 const eDiceRoll = rollDie(enemyAbility.dice || 1);
 
                 const pCoins = (playerAbility.coins || 0) + pClashBonus;
-                const eCoins = enemyAbility.coins || 0;
+                const eCoins = (enemyAbility.coins || 0) + eClashBonus;
 
                 const pCoinBonus = rollCoins(pCoins);
                 const eCoinBonus = rollCoins(eCoins);
@@ -854,7 +881,6 @@
                     log(`${player.name} wins the clash!`, 'log-win');
                     this.executeAction(player, playerAbility, enemy, pDiceRoll);
                     
-                    // Balter Passive Check
                     if (player.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[player.uniquePassive.onClashWin](player, enemy);
                     }
@@ -862,7 +888,6 @@
                     log(`${enemy.name} wins the clash!`, 'log-loss');
                     this.executeAction(enemy, enemyAbility, player, eDiceRoll);
                     
-                    // Balter Passive Check
                     if (enemy.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[enemy.uniquePassive.onClashWin](enemy, player);
                     }
@@ -886,15 +911,14 @@
 
             log(`--- Turn ${gameState.turn} ---`, 'log-special');
 
-            // 1. Both attack (Clash Check)
             const pIsAttack = p.type === 'ATTACK' || p.type === 'DYNAMIC_ATTACK';
             const eIsAttack = e.type === 'ATTACK' || e.type === 'DYNAMIC_ATTACK';
 
             if (pIsAttack && eIsAttack) {
                 Combat.handleClash(p, e);
             }
-            // 2. Speed Initiative (Attack vs Non-Attack or Attack vs NONE)
             else {
+                // Determine turn order based on Speed
                 let [first, second] = (player.baseStats.speed >= enemy.baseStats.speed)
                     ? [player, enemy]
                     : [enemy, player];
@@ -903,10 +927,10 @@
                     ? [p, e]
                     : [e, p];
 
-                // First action
+                // Execute First action
                 Combat.executeAction(first, firstAbility, second);
 
-                // Check if second character is still alive AND not staggered/disabled
+                // Execute Second action if alive and not staggered
                 const secondIsStaggered = second.baseStats.effects.includes('Stagger');
                 if (second.baseStats.currentHP > 0 && secondAbility.type !== 'NONE' && !secondIsStaggered) {
                     Combat.executeAction(second, secondAbility, first);
@@ -919,17 +943,14 @@
         }
 
         function endTurnCleanup() {
-            // Run pre-turn status resolution (removes Stagger, Defense+, etc.)
             Status.resolveTurnStart(gameState.player);
             Status.resolveTurnStart(gameState.enemy);
             
-            // Run character-specific passive turn-end handlers (e.g., Striker's counter)
             if (gameState.player.uniquePassive?.onTurnEnd) {
                 const handlerName = gameState.player.uniquePassive.onTurnEnd;
                 UniqueEffectHandlers[handlerName](gameState.player);
             }
 
-            // Check for game over (simplified)
             if (gameState.player.baseStats.currentHP <= 0) {
                 log(`${gameState.player.name} has been defeated! Game Over.`, 'log-loss');
                 dialogueText.textContent = 'GAME OVER';
@@ -945,6 +966,7 @@
                 updateHealthUI();
                 renderActions();
                 dialogueText.textContent = 'Choose your action:';
+                turnCounter.textContent = gameState.turn;
             }
         }
 
@@ -957,17 +979,11 @@
                 return;
             }
 
-            // Simple AI: Prefer Piledriver if player is Grappled, otherwise 50/50 attack/defense
-            const isPlayerGrappled = gameState.player.baseStats.effects.includes('Grappled');
-            const grapple = enemy.abilities.find(a => a.name === 'Grapple');
+            // Simple Goblin AI: 50/50 attack/defense
             const attack = enemy.abilities.find(a => a.type === 'ATTACK');
             const defense = enemy.abilities.find(a => a.type === 'DEFENSE');
 
-            if (isPlayerGrappled && enemy.abilities.find(a => a.name === 'Piledriver')) {
-                // If enemy had Piledriver (Goblin doesn't, but future enemies might)
-                // Use default attack for now.
-                gameState.enemyAction = attack;
-            } else if (Math.random() < 0.5 && defense) {
+            if (Math.random() < 0.5 && defense) {
                 gameState.enemyAction = defense;
             } else if (attack) {
                 gameState.enemyAction = attack;
@@ -986,7 +1002,6 @@
                 ui.hpBar.style.width = perc + '%';
                 ui.hpText.textContent = `${entity.baseStats.currentHP}/${entity.baseStats.maxHP}`;
                 
-                // Display effects
                 const effectsText = entity.baseStats.effects.length ? ` (${entity.baseStats.effects.join(', ')})` : '';
                 ui.statusText.textContent = `Status: ${entity.baseStats.status || 'Active'}${effectsText}`;
             };
@@ -999,7 +1014,6 @@
             
             const isEnemyGrappled = gameState.enemy.baseStats.effects.includes('Grappled');
             
-            // Get abilities that are NOT hidden (like the Tri-Sword template abilities)
             const visibleAbilities = gameState.player.abilities.filter(a => !a.isHidden); 
 
             visibleAbilities.forEach(ability => {
@@ -1007,25 +1021,21 @@
                 btn.classList.add('combat-btn');
                 let displayName = ability.name;
 
-                // --- UI Logic for Balter's Piledriver (Required Status Check) ---
                 if (ability.name === 'Piledriver') {
-                    // Button is disabled if enemy is NOT Grappled
                     btn.disabled = !isEnemyGrappled;
                     if (isEnemyGrappled) {
-                        btn.classList.add('combo-ready'); // Visual indicator
+                        btn.classList.add('combo-ready');
                     } else {
                         btn.classList.remove('combo-ready');
                     }
                 }
                 
-                // --- UI Logic for Zectus's Dynamic Attack ---
                 if (gameState.player.id === 'zectus' && ability.isZectusMainAttack) {
                     const currentWeapon = gameState.player.baseStats.triSwordState;
                     displayName = `Tri-Sword: ${currentWeapon}`;
                     btn.classList.add('active-weapon-btn'); 
                 }
 
-                // Disable all buttons if action already chosen
                 if (gameState.playerAction !== null) {
                     btn.disabled = true;
                 }
@@ -1046,7 +1056,7 @@
                     <h3 class="text-2xl">${char.name}</h3>
                     <p class="text-sm">${char.description}</p>
                     <div class="text-xs mt-2">
-                        <p>HP: ${char.baseStats.maxHP} | Def: ${char.baseStats.defense}</p>
+                        <p>HP: ${char.baseStats.maxHP} | Def: ${char.baseStats.defense} | Speed: ${char.baseStats.speed}</p>
                         <p class="font-semibold mt-1">Passive: ${char.uniquePassive.name}</p>
                         <p class="text-xs italic">${char.uniquePassive.effect}</p>
                     </div>
@@ -1057,7 +1067,6 @@
         }
 
         function startCombat(playerId) {
-            // Deep clone the character data to ensure stats are reset for a new fight
             const playerTemplate = Characters.find(c => c.id === playerId);
             gameState.player = JSON.parse(JSON.stringify(playerTemplate));
             gameState.enemy = JSON.parse(JSON.stringify(ENEMY_GOBLIN));
@@ -1067,11 +1076,11 @@
             
             gameState.turn = 1;
             combatLog.innerHTML = '';
+            turnCounter.textContent = gameState.turn;
             
-            log(`${gameState.player.name} (Lvl ${gameState.player.baseStats.level}) enters the Arena!`);
-            log(`Opponent: ${gameState.enemy.name}.`, 'log-special');
+            log(`${gameState.player.name} (Speed: ${gameState.player.baseStats.speed}) enters the Arena!`);
+            log(`Opponent: ${gameState.enemy.name} (Speed: ${gameState.enemy.baseStats.speed}).`, 'log-special');
             
-            // Set UI names
             playerStatus.name.textContent = gameState.player.name;
             enemyStatus.name.textContent = gameState.enemy.name;
 
