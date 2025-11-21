@@ -168,11 +168,26 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: all 0.2s ease;
+    color: white; /* Ensure text is always white on the colored buttons */
+}
+
+/* Base style for main menu buttons */
+.menu-btn {
+    background-color: var(--button-bg); /* Default brown/tan */
+}
+
+/* Accent style for the "New Game" button */
+.menu-btn-accent {
+    background-color: var(--accent-color) !important; /* Orange/Amber */
 }
 
 .menu-btn:hover, .combat-btn:hover, .standard-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+.menu-btn:hover {
+    background-color: var(--button-hover-bg) !important;
 }
 
 .menu-btn:disabled, .combat-btn:disabled, .standard-btn:disabled {
@@ -184,10 +199,6 @@ body {
 }
 
 /* Specific Menu/Standard Button Colors */
-.menu-btn {
-    color: white;
-}
-
 .standard-btn {
     padding: 8px 15px;
     width: auto;
