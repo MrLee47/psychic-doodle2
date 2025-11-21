@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronicles of Heroes: Erebos</title>
+    <title>Chronicles of Heroes: Visualized Combat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
@@ -29,6 +29,7 @@
             --log-win: #059669; /* Darker Green */
             --log-loss: #b91c1c; /* Dark Red */
             --log-damage: #b45309; /* Dark Orange for damage */
+            --arena-bg: #ede9d7;
             font-family: 'Inter', sans-serif;
         }
 
@@ -48,6 +49,7 @@
             --log-win: #00ff41;
             --log-loss: #ff0000;
             --log-damage: #ff8c00; /* Dark orange */
+            --arena-bg: #050505;
             font-family: 'Monospace', monospace;
         }
 
@@ -74,27 +76,35 @@
 
         /* Card and Container Styles */
         .main-container {
-            max-width: 1200px; /* Increased max width */
+            max-width: 1200px;
             width: 100%;
-            height: 90vh; /* Fixed height for the whole combat view */
+            height: 90vh;
             display: grid;
-            /* Layout: 70% for Visual Arena, 30% for Combat Panel */
             grid-template-columns: 2fr 1fr; 
             gap: 20px;
         }
 
-        /* The Visual Arena (New Left Slot) */
+        /* The Visual Arena (Left Slot) */
         #visual-arena {
-            background-color: var(--status-bar-bg);
+            background-color: var(--arena-bg);
             border: 2px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 10px; /* Reduced padding to make room for dialogue */
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
-            align-items: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            position: relative;
+        }
+
+        /* Animation Container */
+        #roll-animation-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+            min-height: 400px;
         }
 
         .visual-placeholder {
@@ -119,15 +129,37 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
+        /* Dialogue Area Styles */
+        #dialogue-area {
+            background-color: var(--status-bar-bg);
+            border-top: 2px solid var(--border-color);
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        #room-description {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        #room-options {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+        
         /* Responsive adjustments for smaller screens */
         @media (max-width: 1024px) {
             .main-container {
-                grid-template-columns: 1fr; /* Stack columns vertically */
+                grid-template-columns: 1fr;
                 height: auto;
                 overflow-y: auto;
             }
             #visual-arena {
-                min-height: 250px; /* Smaller visual area on mobile */
+                min-height: 400px;
             }
             body {
                 padding: 10px;
@@ -135,19 +167,106 @@
             }
         }
         
-        /* Text and Typography */
-        h1, h2 {
-            color: var(--primary-color);
+        /* Custom Animation Elements */
+
+        /* Slot Machine (Dice Roll) */
+        .slot-machine-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 3rem;
             font-weight: 900;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        h3 {
-            font-weight: 700;
-            color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Buttons */
+        .slot-wheel {
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 4px solid var(--border-color);
+        }
+
+        .slot-result {
+            font-size: 4rem;
+            color: var(--hp-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Spinning Animation */
+        @keyframes spin-roll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-1000%); }
+        }
+
+        .slot-spinning {
+            animation: spin-roll 0.1s linear infinite;
+        }
+
+        /* Coin Flip Visualizer */
+        .coin-visualizer {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .coin {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .coin-head { background-color: gold; color: #333; }
+        .coin-tail { background-color: silver; color: #333; }
+        
+        /* Flip Animation */
+        @keyframes flip-animation {
+            0% { transform: rotateY(0) scale(1); }
+            50% { transform: rotateY(900deg) scale(1.2); }
+            100% { transform: rotateY(0) scale(1); }
+        }
+        .coin-flipping {
+            animation: flip-animation 1s ease-out;
+        }
+
+        /* Clash Animation */
+        .clash-contester {
+            font-size: 2.5rem;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .clash-player { background-color: var(--mp-color); color: white; }
+        .clash-enemy { background-color: var(--hp-color); color: white; }
+
+        .clash-winner {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 8px 15px var(--log-win);
+        }
+        .clash-loser {
+            opacity: 0.4;
+        }
+
+        /* Standard Button Styles (Applied to existing elements) */
         button {
             background-color: var(--button-bg);
             color: white;
@@ -164,135 +283,18 @@
             background-color: var(--button-hover-bg);
             transform: translateY(-1px);
         }
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
         button:disabled {
             background-color: #ccc;
             color: #666;
             cursor: not-allowed;
             box-shadow: none;
         }
-        .combat-btn {
-            min-width: 150px;
-        }
 
-        .combo-ready {
-            border: 2px solid var(--hp-color) !important;
-            background-color: var(--hp-color);
-        }
-
-        .active-weapon-btn {
-            border: 2px solid var(--mp-color);
-            background-color: var(--mp-color);
-        }
-
-        /* Status Bars */
-        .hp-bar-container {
-            height: 25px;
-            background-color: var(--hp-bg);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 5px;
-            border: 1px solid var(--border-color);
-        }
-
-        .hp-bar-fill {
-            height: 100%;
-            background-color: var(--hp-color);
-            transition: width 0.3s ease-out;
-        }
-
-        .hp-text {
-            font-size: 0.9em;
-            text-align: center;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .status-text {
-            font-size: 0.8em;
-            text-align: center;
-            color: var(--log-special);
-        }
-
-        /* Combat Log */
-        #combat-log {
-            height: 250px;
-            overflow-y: scroll;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-        }
-
-        .log-entry {
-            font-size: 0.9em;
-            padding: 2px 0;
-            border-bottom: 1px dotted rgba(0, 0, 0, 0.1);
-            color: var(--text-color);
-        }
-
-        .log-win { color: var(--log-win); font-weight: 700; }
-        .log-loss { color: var(--log-loss); font-weight: 700; }
-        .log-damage { color: var(--log-damage); font-weight: 700; }
-        .log-special { color: var(--log-special); font-style: italic; }
-
-        /* Character Select */
-        .char-card {
-            text-align: center;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 3px solid transparent;
-        }
-
-        .char-card:hover {
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border-color: var(--accent-color);
-        }
-
-        .char-card.selected {
-            border: 3px solid var(--hp-color);
-            transform: scale(1.05);
-        }
-
-        /* SETTINGS PANEL */
-        .settings-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 300px;
-            height: 100%;
-            background-color: var(--status-bar-bg);
-            border-left: 2px solid var(--border-color);
-            padding: 20px;
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .settings-panel.open {
-            transform: translateX(0);
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            color: var(--text-color);
-            padding: 0;
-            cursor: pointer;
-            box-shadow: none;
-        }
-        
     </style>
 </head>
 <body class="default-theme flex-col">
 
-    <!-- Menu Screen -->
+    <!-- Menu Screen (Rest unchanged) -->
     <div id="menu-screen" class="min-h-screen flex flex-col items-center justify-center p-4 w-full">
         <div class="container w-full max-w-sm text-center card">
             <h1 class="text-5xl font-extrabold mb-8">Chronicles of Heroes</h1>
@@ -304,7 +306,7 @@
         </div>
     </div>
 
-    <!-- Character Select Screen -->
+    <!-- Character Select Screen (Rest unchanged) -->
     <div id="character-select-screen" class="hidden min-h-screen flex flex-col items-center p-4 w-full">
         <div class="container w-full max-w-4xl card">
             <h2 class="text-3xl mt-4 mb-6">Select Your Hero</h2>
@@ -319,14 +321,25 @@
         
         <!-- VISUAL ARENA (Left Column) -->
         <div id="visual-arena">
-            <div class="visual-placeholder">
-                Visual Arena for animations and character art goes here!
+            
+            <!-- Animation Container for Rolls, Flips, Clashes -->
+            <div id="roll-animation-container">
+                <div class="visual-placeholder">
+                    Visual Arena for Clash and Dice/Coin Animations.
+                </div>
+                <!-- Content will be dynamically inserted here -->
             </div>
-            <!-- Future animation/image rendering element -->
-            <div id="animation-display"></div>
+            
+            <!-- Dialogue/Room Description Area (NEW) -->
+            <div id="dialogue-area" class="card">
+                <p id="room-description" class="text-color text-lg mb-4"></p>
+                <div id="room-options" class="flex gap-4">
+                    <!-- Options buttons will be dynamically inserted here -->
+                </div>
+            </div>
         </div>
         
-        <!-- COMBAT PANEL (Right Column) - Consolidated Game UI -->
+        <!-- COMBAT PANEL (Right Column) - Consolidated Game UI (Rest unchanged) -->
         <div id="combat-panel">
             
             <!-- Status Bars -->
@@ -370,7 +383,7 @@
         </div>
     </div>
 
-    <!-- Settings Panel -->
+    <!-- Settings Panel (Rest unchanged) -->
     <div id="settings-panel" class="settings-panel">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold">Settings</h3>
@@ -398,6 +411,7 @@
             turn: 1,
             playerAction: null,
             enemyAction: null,
+            isResolving: false, // Prevents multiple turns
         };
 
         // ----------------- DOM REFS -----------------
@@ -418,6 +432,11 @@
         const actionButtonsDiv = $('action-buttons');
         const combatLog = $('combat-log');
         const turnCounter = $('turn-counter');
+        
+        const rollAnimationContainer = $('roll-animation-container');
+        const roomDescriptionDiv = $('room-description');
+        const roomOptionsDiv = $('room-options');
+
 
         const playerStatus = {
             name: $('player-name'),
@@ -437,6 +456,8 @@
         const rollCoins = (count) => Array.from({ length: count }, () => Math.random() < 0.5 ? 1 : 0)
                                         .reduce((a,b)=>a+b, 0);
 
+        const delayExecution = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
         function log(message, className='log-entry') {
             const p = document.createElement('p');
             p.className = `log-entry ${className}`;
@@ -445,7 +466,8 @@
             while(combatLog.children.length > 50) combatLog.removeChild(combatLog.lastChild);
         }
 
-        // ----------------- CONSOLIDATED CHARACTER DATA -----------------
+        // ----------------- CONSOLIDATED CHARACTER DATA (Simplified/Moved) -----------------
+        // In a full application, this would be in a separate file, but kept here for the single-file mandate.
 
         const Characters = [
             // --- 1. Striker (Slow Start: Coin Scaler) ---
@@ -453,40 +475,11 @@
                 id: 'striker',
                 name: 'Striker',
                 description: 'A damage specialist who scales in power the longer a fight lasts.',
-                baseStats: {
-                    maxHP: 110,
-                    defense: 2,
-                    level: 1,
-                    speed: 3,
-                    // Unique state tracking:
-                    consecutive_rounds: 0, 
-                    effects: [],
-                },
-                uniquePassive: { 
-                    name: 'Slow Start', 
-                    effect: 'Each consecutive combat round, gains +1 Coin to all attacks.',
-                    type: 'CoinScaler', // Used to reference handler logic
-                    onClashRoll: 'getStrikerClashBonus', 
-                    onTurnEnd: 'onStrikerTurnEnd' 
-                },
+                baseStats: { maxHP: 110, defense: 2, level: 1, speed: 3, consecutive_rounds: 0, effects: [] },
+                uniquePassive: { name: 'Slow Start', effect: 'Each consecutive combat round, gains +1 Coin to all attacks.', type: 'CoinScaler', onClashRoll: 'getStrikerClashBonus', onTurnEnd: 'onStrikerTurnEnd' },
                 abilities: [
-                    {
-                        name: 'Dragon Strike',
-                        type: 'ATTACK',
-                        damageType: 'Force',
-                        baseAttack: 4, 
-                        dice: 4, 
-                        coins: 2, 
-                    },
-                    {
-                        name: 'Heavy Blow',
-                        type: 'ATTACK',
-                        damageType: 'Physical',
-                        baseAttack: 10,
-                        dice: 12,
-                        coins: 0,
-                        statusApplied: 'Stagger',
-                    }
+                    { name: 'Dragon Strike', type: 'ATTACK', damageType: 'Force', baseAttack: 4, dice: 4, coins: 2 },
+                    { name: 'Heavy Blow', type: 'ATTACK', damageType: 'Physical', baseAttack: 10, dice: 12, coins: 0, statusApplied: 'Stagger' }
                 ]
             },
             // --- 2. Balter (Wrestling Powerhouse) ---
@@ -494,89 +487,24 @@
                 id: 'balter',
                 name: 'Balter',
                 description: 'A wrestling powerhouse who locks down targets for massive damage.',
-                baseStats: {
-                    maxHP: 130,
-                    defense: 3,
-                    level: 1,
-                    speed: 1,
-                    grappleDie: 8,
-                    isGrappling: false,
-                    effects: [],
-                },
-                uniquePassive: { 
-                    name: 'The Old One, Two', 
-                    effect: 'Roll an extra d4 damage on any successful clash.',
-                    type: 'ClashWinBonus',
-                    onClashWin: 'getBalterClashWinBonus'
-                },
+                baseStats: { maxHP: 130, defense: 3, level: 1, speed: 1, grappleDie: 8, isGrappling: false, effects: [] },
+                uniquePassive: { name: 'The Old One, Two', effect: 'Roll an extra d4 damage on any successful clash.', type: 'ClashWinBonus', onClashWin: 'getBalterClashWinBonus' },
                 abilities: [
-                    {
-                        name: 'Haymaker',
-                        type: 'ATTACK',
-                        damageType: 'Blunt',
-                        baseAttack: 7, 
-                        dice: 10,
-                        coins: 1,
-                    },
-                    {
-                        name: 'Grapple',
-                        type: 'SPECIAL',
-                        effect: 'Roll d10 vs target\'s d8. On success, applies Grappled status.',
-                        effectHandler: 'executeGrapple',
-                        dice: 10, 
-                        coins: 0,
-                        statusApplied: 'Grappled', // Status applied only on success via handler
-                    },
-                    {
-                        name: 'Piledriver',
-                        type: 'ATTACK',
-                        damageType: 'Physical',
-                        baseAttack: 12,
-                        dice: 12,
-                        coins: 0,
-                        requiredTargetStatus: 'Grappled',
-                        postExecutionHandler: 'removeGrappleStatus', // New handler to remove status
-                    }
+                    { name: 'Haymaker', type: 'ATTACK', damageType: 'Blunt', baseAttack: 7, dice: 10, coins: 1 },
+                    { name: 'Grapple', type: 'SPECIAL', effect: 'Roll d10 vs target\'s d8. On success, applies Grappled status.', effectHandler: 'executeGrapple', dice: 10, coins: 0, statusApplied: 'Grappled' },
+                    { name: 'Piledriver', type: 'ATTACK', damageType: 'Physical', baseAttack: 12, dice: 12, coins: 0, requiredTargetStatus: 'Grappled', postExecutionHandler: 'removeGrappleStatus' }
                 ]
             },
             // --- 3. Shuten-Maru (Chrono-Fist) ---
             {
                 id: 'shutenmaru',
                 name: 'Shuten-Maru',
-                description: 'Undying psycho demon who uses psychokinetic powers to fuel his strength.',
-                baseStats: {
-                    maxHP: 100,
-                    defense: 1,
-                    level: 1,
-                    speed: 4,
-                    lastDamageTaken: 0, // Unique state tracking
-                    effects: [],
-                },
-                uniquePassive: { 
-                    name: 'Chrono-Fist', 
-                    effect: 'If an attack die roll is 8, heal for the damage taken in the previous turn.',
-                    type: 'RollTrigger',
-                },
+                description: 'A swift, ghostly fighter who converts damage taken into healing.',
+                baseStats: { maxHP: 100, defense: 1, level: 1, speed: 4, lastDamageTaken: 0, effects: [] },
+                uniquePassive: { name: 'Chrono-Fist', effect: 'If an attack die roll is 8, heal for the damage taken in the previous turn.', type: 'RollTrigger' },
                 abilities: [
-                    {
-                        name: 'Ghost Fist',
-                        type: 'ATTACK',
-                        damageType: 'Psychic',
-                        baseAttack: 6, 
-                        dice: 8,
-                        coins: 1,
-                        // Post-damage handler to check for heal trigger
-                        postDamageHandler: 'checkShutenMaruHeal', 
-                    },
-                    {
-                        name: 'Phase',
-                        type: 'DEFENSE',
-                        effect: 'Negates the next incoming hit.',
-                        effectHandler: 'applyNegateHit', // References handler
-                        baseAttack: 0, 
-                        dice: 0,
-                        coins: 0,
-                    }
+                    { name: 'Ghost Fist', type: 'ATTACK', damageType: 'Psychic', baseAttack: 6, dice: 8, coins: 1, postDamageHandler: 'checkShutenMaruHeal' },
+                    { name: 'Phase', type: 'DEFENSE', effect: 'Negates the next incoming hit.', effectHandler: 'applyNegateHit', baseAttack: 0, dice: 0, coins: 0 }
                 ]
             },
             // --- 4. Zectus Maximus (Tri-Sword) ---
@@ -584,71 +512,143 @@
                 id: 'zectus',
                 name: 'Zectus Maximus',
                 description: 'A versatile warrior whose damage type changes with his weapon form.',
-                baseStats: {
-                    maxHP: 105,
-                    defense: 2,
-                    level: 1,
-                    speed: 2,
-                    effects: [],
-                    gender: 'Male',
-                    triSwordState: 'Scythe', // Tracks current weapon form
-                },
-                uniquePassive: { 
-                    name: 'Homogenous', 
-                    effect: 'Adds +2 Coins to Clashes against female opponents.',
-                    type: 'ConditionalCoin',
-                    condition: { target_gender: 'Female' },
-                    onClashRoll: 'getZectusClashBonus'
-                },
+                baseStats: { maxHP: 105, defense: 2, level: 1, speed: 2, effects: [], gender: 'Male', triSwordState: 'Scythe' },
+                uniquePassive: { name: 'Homogenous', effect: 'Adds +2 Coins to Clashes against female opponents.', type: 'ConditionalCoin', condition: { target_gender: 'Female' }, onClashRoll: 'getZectusClashBonus' },
                 abilities: [
-                    {
-                        name: 'Cycle',
-                        type: 'SWITCH',
-                        effect: 'Cycles Tri-Sword: Scythe -> Trident -> Hammer. Deals 2 damage on activation.',
-                        effectHandler: 'cycleTriSword', // References handler
-                        baseAttack: 2, // Activation damage
-                        dice: 0,
-                        coins: 0,
-                    },
-                    // Dynamic attack abilities are now templates only
-                    {
-                        name: 'Tri-Sword: Main Attack',
-                        id: 'tri_sword_main',
-                        type: 'DYNAMIC_ATTACK',
-                        resolver: 'resolveZectusDynamicAttack', // References resolver handler
-                        dice: 8, // Base dice for clash
-                        coins: 1, // Base coins for clash
-                        isZectusMainAttack: true, // Marker for UI
-                    },
+                    { name: 'Cycle', type: 'SWITCH', effect: 'Cycles Tri-Sword: Scythe -> Trident -> Hammer. Deals 2 damage on activation.', effectHandler: 'cycleTriSword', baseAttack: 2, dice: 0, coins: 0 },
+                    { name: 'Tri-Sword: Main Attack', id: 'tri_sword_main', type: 'DYNAMIC_ATTACK', resolver: 'resolveZectusDynamicAttack', dice: 8, coins: 1, isZectusMainAttack: true },
                 ]
             },
         ];
 
         // Enemy Template
         const ENEMY_GOBLIN = {
-            id:'goblin',
-            name:'Gravel-Claw Goblin',
-            description: 'A basic enemy with a simple attack and defense.',
-            baseStats:{ 
-                maxHP: 80, 
-                currentHP: 80, 
-                defense: 2, 
-                speed: 2, 
-                status:'Alive', 
-                effects: [], 
-                grappleDie: 6, 
-                gender:'Female' // For Zectus's passive test
-            },
+            id:'goblin', name:'Gravel-Claw Goblin', description: 'A basic enemy with a simple attack and defense.',
+            baseStats:{ maxHP: 80, currentHP: 80, defense: 2, speed: 2, status:'Alive', effects: [], grappleDie: 6, gender:'Female' },
             abilities:[
                 { name:'Gnaw Attack', type:'ATTACK', baseAttack:5, dice:6, coins:2, damageType:'Physical' },
                 { name:'Defensive Crouch', type:'DEFENSE', effectHandler:'applyDefenseBonus', baseAttack:0, dice:0, coins:0 }
             ]
         };
 
-        // ----------------- HANDLER MODULE: UNIQUE EFFECT LOGIC -----------------
-        const UniqueEffectHandlers = {
+        // ----------------- ANIMATION/VISUAL MODULE -----------------
+        const Visuals = {
+            async showSlotMachineRoll(diceSize, result, label) {
+                rollAnimationContainer.innerHTML = '';
+                await Visuals.setDialogue(`Rolling a d${diceSize} for ${label}...`);
 
-            // --- STRIKER Handlers ---
+                const container = document.createElement('div');
+                container.className = 'slot-machine-container';
+                container.innerHTML = `<p class="text-xl font-bold mb-2">${label} (d${diceSize})</p>`;
+
+                const wheel = document.createElement('div');
+                wheel.className = 'slot-wheel flex justify-center items-center';
+
+                const resultDisplay = document.createElement('div');
+                resultDisplay.className = 'slot-result slot-spinning';
+                resultDisplay.textContent = '...';
+                
+                wheel.appendChild(resultDisplay);
+                container.appendChild(wheel);
+                rollAnimationContainer.appendChild(container);
+
+                await delayExecution(1500); // Animation Spin time
+
+                resultDisplay.classList.remove('slot-spinning');
+                resultDisplay.textContent = result;
+                resultDisplay.style.color = 'var(--log-damage)';
+
+                await delayExecution(1000); // Result display time
+            },
+
+            async showCoinFlips(coinCount, result) {
+                if (coinCount === 0) return;
+                
+                rollAnimationContainer.innerHTML = '';
+                await Visuals.setDialogue(`Flipping ${coinCount} coin(s) for bonus damage...`);
+
+                const container = document.createElement('div');
+                container.className = 'flex flex-col items-center';
+                container.innerHTML = `<p class="text-lg font-bold mb-2">Coin Bonus: +${result}</p>`;
+                
+                const visualizer = document.createElement('div');
+                visualizer.className = 'coin-visualizer';
+
+                // Simple visualization: show the final result
+                for (let i = 0; i < coinCount; i++) {
+                    const coin = document.createElement('div');
+                    const isHead = i < result;
+                    coin.className = `coin coin-flipping ${isHead ? 'coin-head' : 'coin-tail'}`;
+                    coin.textContent = isHead ? 'H' : 'T';
+                    coin.style.animationDelay = `${i * 0.2}s`;
+                    visualizer.appendChild(coin);
+                }
+                
+                container.appendChild(visualizer);
+                rollAnimationContainer.appendChild(container);
+
+                await delayExecution(2000 + coinCount * 200); // Wait for flips
+            },
+
+            async showClashAnimation(pRoll, eRoll) {
+                rollAnimationContainer.innerHTML = '';
+                await Visuals.setDialogue('Contesting the Clash...');
+
+                const container = document.createElement('div');
+                container.className = 'flex flex-col items-center justify-center space-y-4';
+                
+                const pContester = document.createElement('div');
+                pContester.className = 'clash-contester clash-player';
+                pContester.textContent = `${gameState.player.name}: ${pRoll}`;
+
+                const eContester = document.createElement('div');
+                eContester.className = 'clash-contester clash-enemy';
+                eContester.textContent = `${gameState.enemy.name}: ${eRoll}`;
+                
+                const winner = pRoll >= eRoll ? pContester : eContester;
+                const loser = pRoll >= eRoll ? eContester : pContester;
+
+                container.appendChild(pContester);
+                container.appendChild(document.createElement('p')).textContent = 'VS';
+                container.appendChild(eContester);
+                
+                rollAnimationContainer.appendChild(container);
+
+                await delayExecution(1000);
+
+                winner.classList.add('clash-winner');
+                loser.classList.add('clash-loser');
+
+                await delayExecution(1500);
+            },
+            
+            async setDialogue(description, options = []) {
+                roomDescriptionDiv.textContent = description;
+                roomOptionsDiv.innerHTML = '';
+                
+                if (options.length > 0) {
+                    options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = 'px-4 py-2 text-white rounded-md transition duration-200';
+                        btn.textContent = opt.text;
+                        btn.onclick = () => {
+                            roomOptionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
+                            opt.action();
+                        };
+                        roomOptionsDiv.appendChild(btn);
+                    });
+                }
+            },
+            
+            clearAnimations() {
+                rollAnimationContainer.innerHTML = `<div class="visual-placeholder">Waiting for next action...</div>`;
+            }
+        };
+
+
+        // ----------------- HANDLER MODULE: UNIQUE EFFECT LOGIC -----------------
+        // ... (UniqueEffectHandlers remain the same as previous versions) ...
+        const UniqueEffectHandlers = {
             getStrikerClashBonus(attacker) {
                 const bonus = attacker.baseStats.consecutive_rounds || 0;
                 if (bonus > 0) log(`${attacker.name} passive grants +${bonus} coin bonus to clash roll.`, 'log-special');
@@ -658,13 +658,10 @@
                 character.baseStats.consecutive_rounds = (character.baseStats.consecutive_rounds || 0) + 1;
                 log(`${character.name} grows stronger! Coin Bonus: +${character.baseStats.consecutive_rounds}`, 'log-special');
             },
-
-            // --- SHUTEN-MARU Handlers ---
             applyNegateHit(attacker, ability, target) {
                 attacker.baseStats.effects.push('NegateNextHit');
                 log(`${attacker.name} phases and will negate the next incoming hit.`, 'log-special');
             },
-            
             checkShutenMaruHeal(attacker, ability, target, diceRoll) {
                 if (diceRoll === 8) {
                     const heal = attacker.baseStats.lastDamageTaken;
@@ -674,8 +671,6 @@
                     }
                 }
             },
-            
-            // --- BALTER Handlers ---
             getBalterClashWinBonus(winner, loser) {
                 const bonusDamage = rollDie(4);
                 loser.baseStats.currentHP = Math.max(0, loser.baseStats.currentHP - bonusDamage);
@@ -699,8 +694,6 @@
                 attacker.baseStats.isGrappling = false;
                 log(`${target.name} is released from Grapple.`, 'log-special');
             },
-            
-            // --- ZECTUS Handlers ---
             getZectusClashBonus(attacker, target) {
                 const isFemale = target.baseStats.gender === attacker.uniquePassive.condition.target_gender;
                 if (isFemale) {
@@ -709,7 +702,6 @@
                 }
                 return 0;
             },
-            
             resolveZectusDynamicAttack(attacker) {
                 const state = attacker.baseStats.triSwordState;
                 const subAbilities = {
@@ -733,24 +725,26 @@
                 
                 log(`${attacker.name} cycles to ${weapons[next]} and strikes ${target.name} for ${damage} damage.`, 'log-damage');
             },
-
-            // --- GENERIC Handlers ---
             applyDefenseBonus(attacker, ability, target) {
                 attacker.baseStats.effects.push('DefensePlusTwo');
                 log(`${attacker.name} takes a Defensive Stance! (+2 Defense)`, 'log-special');
             }
         };
 
-        // ----------------- ABILITY TYPE HANDLERS -----------------
+        // ----------------- ABILITY TYPE HANDLERS (Now ASYNC) -----------------
         const AbilityTypeHandlers = {
-            ATTACK: (attacker, ability, target, diceRoll) => {
+            ATTACK: async (attacker, ability, target, diceRoll) => {
                 if (target.baseStats.effects.includes('NegateNextHit')) { 
                     log(`${target.name} Phases! Negating hit.`, 'log-win'); 
                     target.baseStats.effects = target.baseStats.effects.filter(e => e !== 'NegateNextHit'); 
                     return; 
                 }
 
+                await Visuals.showSlotMachineRoll(ability.dice || 1, diceRoll, `${attacker.name}'s Attack`);
+                
                 const coinBonus = rollCoins(ability.coins || 0);
+                await Visuals.showCoinFlips(ability.coins || 0, coinBonus);
+                
                 let defense = target.baseStats.defense;
                 if(target.baseStats.effects.includes('DefensePlusTwo')) defense += 2;
                 
@@ -760,45 +754,52 @@
 
                 target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - dmg);
                 log(`${attacker.name} attacks with ${ability.name}. Hits for ${dmg} (${ability.damageType})`, 'log-damage');
+                updateHealthUI();
+                await delayExecution(500);
 
                 Status.resolvePostAction(attacker, ability, target, diceRoll);
             },
 
-            DEFENSE: (attacker, ability, target) => {
+            DEFENSE: async (attacker, ability, target) => {
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
                     UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
                 } else {
                     log(`${attacker.name} takes a generic defensive action.`);
                 }
+                await delayExecution(1000);
             },
 
-            SPECIAL: (attacker, ability, target) => {
+            SPECIAL: async (attacker, ability, target) => {
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
                     UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
                 } else {
                     log(`${attacker.name} uses a generic special ability.`);
                 }
+                await delayExecution(1000);
             },
             
-            SWITCH: (attacker, ability, target) => {
+            SWITCH: async (attacker, ability, target) => {
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
                     UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
                 } else {
                     log(`${attacker.name} attempts a switch but fails.`);
                 }
+                renderActions(); // Update buttons immediately for weapon change
+                await delayExecution(1000);
             },
 
-            DYNAMIC_ATTACK: (attacker, ability, target) => {
+            DYNAMIC_ATTACK: async (attacker, ability, target) => {
                 if (ability.resolver && UniqueEffectHandlers[ability.resolver]) {
                     const resolvedAbility = UniqueEffectHandlers[ability.resolver](attacker, ability);
                     
-                    AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, rollDie(resolvedAbility.dice));
+                    // Recursive call to ATTACK handler, which is now ASYNC
+                    await AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, rollDie(resolvedAbility.dice));
                 }
             }
         };
 
 
-        // ----------------- STATUS MECHANICS -----------------
+        // ----------------- STATUS MECHANICS (Remains the same) -----------------
         const Status = {
             resolvePostAction: (attacker, ability, target, diceRoll = null) => {
                 if (ability.statusApplied && !target.baseStats.effects.includes(ability.statusApplied)) {
@@ -822,11 +823,11 @@
             }
         };
 
-        // ----------------- COMBAT ENGINE (ORCHESTRATOR) -----------------
+        // ----------------- COMBAT ENGINE (ORCHESTRATOR - Now ASYNC) -----------------
         const Combat = {
             baseClashValue: 5,
 
-            executeAction(attacker, ability, target, diceRoll = null) {
+            async executeAction(attacker, ability, target, diceRoll = null) {
                 if (!ability || ability.type === 'NONE') return;
 
                 if (ability.requiredTargetStatus && !target.baseStats.effects.includes(ability.requiredTargetStatus)) {
@@ -834,28 +835,29 @@
                     return;
                 }
 
-                if (ability.type === 'ATTACK' && !diceRoll) {
+                if (ability.type.includes('ATTACK') && !diceRoll) {
                     diceRoll = rollDie(ability.dice || 1);
                 }
 
                 if (AbilityTypeHandlers[ability.type]) {
-                    AbilityTypeHandlers[ability.type](attacker, ability, target, diceRoll);
+                    // Await the handler for animation completion
+                    await AbilityTypeHandlers[ability.type](attacker, ability, target, diceRoll);
                 } else {
                     log(`ERROR: Unknown ability type: ${ability.type}`);
+                    await delayExecution(500);
                 }
             },
 
-            handleClash(playerAbility, enemyAbility) {
+            async handleClash(playerAbility, enemyAbility) {
                 const player = gameState.player;
                 const enemy = gameState.enemy;
 
-                // 1. Calculate Player Coins/Bonus from Passives
+                // 1. Calculate Coins/Bonus
                 let pClashBonus = 0;
                 if (player.uniquePassive?.onClashRoll) {
                     const handlerName = player.uniquePassive.onClashRoll;
                     pClashBonus += UniqueEffectHandlers[handlerName](player, enemy);
                 }
-                // Also check enemy passive (for Zectus vs Female targets)
                 let eClashBonus = 0;
                 if (enemy.uniquePassive?.onClashRoll) {
                     const handlerName = enemy.uniquePassive.onClashRoll;
@@ -877,16 +879,19 @@
 
                 log(`Clash Rolls: P(${playerRoll}, D:${pDiceRoll}, C:${pCoinBonus}) vs E(${enemyRoll}, D:${eDiceRoll}, C:${eCoinBonus})`);
 
+                // 3. Visualize Clash
+                await Visuals.showClashAnimation(playerRoll, enemyRoll);
+                
                 if (playerRoll >= enemyRoll) {
                     log(`${player.name} wins the clash!`, 'log-win');
-                    this.executeAction(player, playerAbility, enemy, pDiceRoll);
+                    await this.executeAction(player, playerAbility, enemy, pDiceRoll); // Await action
                     
                     if (player.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[player.uniquePassive.onClashWin](player, enemy);
                     }
                 } else {
                     log(`${enemy.name} wins the clash!`, 'log-loss');
-                    this.executeAction(enemy, enemyAbility, player, eDiceRoll);
+                    await this.executeAction(enemy, enemyAbility, player, eDiceRoll); // Await action
                     
                     if (enemy.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[enemy.uniquePassive.onClashWin](enemy, player);
@@ -895,27 +900,33 @@
             }
         };
 
-        // ----------------- GAME FLOW -----------------
-        function executeAbility(ability) {
-            if (gameState.playerAction !== null) return;
+        // ----------------- GAME FLOW (Now ASYNC) -----------------
+        async function executeAbility(ability) {
+            if (gameState.isResolving) return;
+            gameState.isResolving = true;
             gameState.playerAction = ability;
-            selectEnemyAction();
-            resolveTurn();
+            
+            // Disable buttons immediately
+            renderActions(); 
+            
+            await selectEnemyAction();
+            await resolveTurn();
         }
 
-        function resolveTurn() {
+        async function resolveTurn() {
             const p = gameState.playerAction;
             const e = gameState.enemyAction;
             const player = gameState.player;
             const enemy = gameState.enemy;
-
+            
+            Visuals.clearAnimations();
             log(`--- Turn ${gameState.turn} ---`, 'log-special');
 
             const pIsAttack = p.type === 'ATTACK' || p.type === 'DYNAMIC_ATTACK';
             const eIsAttack = e.type === 'ATTACK' || e.type === 'DYNAMIC_ATTACK';
 
             if (pIsAttack && eIsAttack) {
-                Combat.handleClash(p, e);
+                await Combat.handleClash(p, e); // Await clash resolution
             }
             else {
                 // Determine turn order based on Speed
@@ -927,22 +938,26 @@
                     ? [p, e]
                     : [e, p];
 
-                // Execute First action
-                Combat.executeAction(first, firstAbility, second);
+                // Execute First action (Await the action for visualization)
+                await Combat.executeAction(first, firstAbility, second);
 
                 // Execute Second action if alive and not staggered
                 const secondIsStaggered = second.baseStats.effects.includes('Stagger');
                 if (second.baseStats.currentHP > 0 && secondAbility.type !== 'NONE' && !secondIsStaggered) {
-                    Combat.executeAction(second, secondAbility, first);
+                    await Combat.executeAction(second, secondAbility, first); // Await action
                 } else if (secondIsStaggered) {
                     log(`${second.name} was Staggered and could not act!`);
                 }
             }
 
-            endTurnCleanup();
+            // Final state check and cleanup
+            await endTurnCleanup();
         }
 
-        function endTurnCleanup() {
+        async function endTurnCleanup() {
+            // Give a moment for the last action log/HP update to sink in
+            await delayExecution(500); 
+
             Status.resolveTurnStart(gameState.player);
             Status.resolveTurnStart(gameState.enemy);
             
@@ -954,25 +969,39 @@
             if (gameState.player.baseStats.currentHP <= 0) {
                 log(`${gameState.player.name} has been defeated! Game Over.`, 'log-loss');
                 dialogueText.textContent = 'GAME OVER';
-                actionButtonsDiv.innerHTML = '<button onclick="setView(\'select\')" class="w-full">Restart</button>';
+                Visuals.setDialogue(`The mighty ${gameState.enemy.name} has bested you. The quest ends here.`, [
+                    { text: 'Start Over', action: () => setView('select') }
+                ]);
             } else if (gameState.enemy.baseStats.currentHP <= 0) {
                 log(`${gameState.enemy.name} has been defeated! You Win!`, 'log-win');
                 dialogueText.textContent = 'VICTORY!';
-                actionButtonsDiv.innerHTML = '<button onclick="setView(\'select\')" class="w-full">Select New Hero</button>';
+                Visuals.setDialogue(`You defeated the ${gameState.enemy.name}! What do you do next?`, [
+                    { text: 'Loot Corpse (Not implemented)', action: () => log('You search the goblin. Nothing useful found.') },
+                    { text: 'Continue to Next Room', action: () => setView('select') } // Placeholder for next room
+                ]);
             } else {
                 gameState.turn++;
                 gameState.playerAction = null;
                 gameState.enemyAction = null;
+                gameState.isResolving = false;
+                
                 updateHealthUI();
                 renderActions();
                 dialogueText.textContent = 'Choose your action:';
                 turnCounter.textContent = gameState.turn;
+                
+                Visuals.setDialogue(`The battle continues. Turn ${gameState.turn}.`);
             }
         }
 
-        function selectEnemyAction() {
+        async function selectEnemyAction() {
             const enemy = gameState.enemy;
             
+            if (enemy.baseStats.currentHP <= 0) {
+                gameState.enemyAction = { name: 'Dead', type: 'NONE' };
+                return;
+            }
+
             if (enemy.baseStats.effects.includes('Stagger')) {
                 gameState.enemyAction = { name: 'Staggered', type: 'NONE' };
                 log(`${enemy.name} is Staggered and skips its turn.`);
@@ -1012,9 +1041,9 @@
         function renderActions() {
             actionButtonsDiv.innerHTML = '';
             
-            const isEnemyGrappled = gameState.enemy.baseStats.effects.includes('Grappled');
+            const isEnemyGrappled = gameState.enemy?.baseStats?.effects?.includes('Grappled');
             
-            const visibleAbilities = gameState.player.abilities.filter(a => !a.isHidden); 
+            const visibleAbilities = gameState.player?.abilities?.filter(a => !a.isHidden) || [];
 
             visibleAbilities.forEach(ability => {
                 const btn = document.createElement('button');
@@ -1022,7 +1051,7 @@
                 let displayName = ability.name;
 
                 if (ability.name === 'Piledriver') {
-                    btn.disabled = !isEnemyGrappled;
+                    btn.disabled = !isEnemyGrappled || gameState.isResolving;
                     if (isEnemyGrappled) {
                         btn.classList.add('combo-ready');
                     } else {
@@ -1036,7 +1065,7 @@
                     btn.classList.add('active-weapon-btn'); 
                 }
 
-                if (gameState.playerAction !== null) {
+                if (gameState.isResolving) {
                     btn.disabled = true;
                 }
 
@@ -1075,6 +1104,7 @@
             gameState.enemy.baseStats.currentHP = gameState.enemy.baseStats.maxHP;
             
             gameState.turn = 1;
+            gameState.isResolving = false;
             combatLog.innerHTML = '';
             turnCounter.textContent = gameState.turn;
             
@@ -1085,6 +1115,9 @@
             enemyStatus.name.textContent = gameState.enemy.name;
 
             setView('combat');
+            Visuals.clearAnimations();
+            Visuals.setDialogue(`You encounter a hostile ${gameState.enemy.name}! Prepare for Turn 1.`);
+            
             updateHealthUI();
             renderActions();
         }
@@ -1125,6 +1158,9 @@
             themeOptionBtns.forEach(btn => {
                 btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
             });
+            
+            // Initial Dialogue for Menu
+            Visuals.setDialogue('Welcome to the Chronicles of Heroes. Choose New Game to begin your adventure!');
         }
 
         window.onload = init;
