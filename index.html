@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chronicles of Heroes: Visualized Combat</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;700;900&display=swap" rel="stylesheet">
     
     <!-- CONSOLIDATED STYLES -->
     <style>
@@ -83,6 +83,38 @@
             grid-template-columns: 2fr 1fr; 
             gap: 20px;
         }
+
+        /* Status Bar specific styles */
+        .hp-bar-container {
+            background-color: var(--hp-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            height: 10px;
+            margin-top: 5px;
+        }
+
+        .hp-bar-fill {
+            height: 100%;
+            background-color: var(--hp-color);
+            transition: width 0.5s ease-out;
+        }
+        
+        .hp-text {
+            font-size: 0.9em;
+            text-align: right;
+            margin-top: 2px;
+            color: var(--hp-color);
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px dotted rgba(0, 0, 0, 0.1);
+            font-size: 0.9em;
+        }
+        .log-special { color: var(--log-special); font-weight: 600; }
+        .log-win { color: var(--log-win); font-weight: 700; }
+        .log-loss { color: var(--log-loss); font-weight: 700; }
+        .log-damage { color: var(--log-damage); font-weight: 700; }
 
         /* The Visual Arena (Left Slot) */
         #visual-arena {
@@ -289,12 +321,22 @@
             cursor: not-allowed;
             box-shadow: none;
         }
+        
+        .char-card {
+            border: 2px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .char-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
 
     </style>
 </head>
 <body class="default-theme flex-col">
 
-    <!-- Menu Screen (Rest unchanged) -->
+    <!-- Menu Screen -->
     <div id="menu-screen" class="min-h-screen flex flex-col items-center justify-center p-4 w-full">
         <div class="container w-full max-w-sm text-center card">
             <h1 class="text-5xl font-extrabold mb-8">Chronicles of Heroes</h1>
@@ -306,7 +348,7 @@
         </div>
     </div>
 
-    <!-- Character Select Screen (Rest unchanged) -->
+    <!-- Character Select Screen -->
     <div id="character-select-screen" class="hidden min-h-screen flex flex-col items-center p-4 w-full">
         <div class="container w-full max-w-4xl card">
             <h2 class="text-3xl mt-4 mb-6">Select Your Hero</h2>
@@ -316,7 +358,7 @@
         </div>
     </div>
 
-    <!-- Combat Arena - Now uses the main-container grid -->
+    <!-- Combat Arena -->
     <div id="game-container" class="hidden main-container">
         
         <!-- VISUAL ARENA (Left Column) -->
@@ -330,7 +372,7 @@
                 <!-- Content will be dynamically inserted here -->
             </div>
             
-            <!-- Dialogue/Room Description Area (NEW) -->
+            <!-- Dialogue/Room Description Area -->
             <div id="dialogue-area" class="card">
                 <p id="room-description" class="text-color text-lg mb-4"></p>
                 <div id="room-options" class="flex gap-4">
@@ -339,7 +381,7 @@
             </div>
         </div>
         
-        <!-- COMBAT PANEL (Right Column) - Consolidated Game UI (Rest unchanged) -->
+        <!-- COMBAT PANEL (Right Column) -->
         <div id="combat-panel">
             
             <!-- Status Bars -->
@@ -351,7 +393,7 @@
                         <div id="player-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
                     </div>
                     <p id="player-hp-text" class="hp-text">100/100</p>
-                    <p id="player-status-text" class="status-text italic"></p>
+                    <p id="player-status-text" class="status-text italic text-sm"></p>
                 </div>
 
                 <!-- Enemy Status -->
@@ -361,14 +403,14 @@
                         <div id="enemy-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
                     </div>
                     <p id="enemy-hp-text" class="hp-text">80/80</p>
-                    <p id="enemy-status-text" class="status-text italic"></p>
+                    <p id="enemy-status-text" class="status-text italic text-sm"></p>
                 </div>
             </div>
 
             <!-- Combat Log -->
-            <div class="card flex-grow" style="min-height: 250px;">
+            <div class="card flex-grow overflow-y-auto" style="max-height: 40vh;">
                 <h4 class="text-lg font-semibold mb-2">Combat Log (Turn: <span id="turn-counter">1</span>)</h4>
-                <div id="combat-log">
+                <div id="combat-log" class="flex flex-col-reverse">
                     <!-- Log entries here -->
                 </div>
             </div>
@@ -383,16 +425,16 @@
         </div>
     </div>
 
-    <!-- Settings Panel (Rest unchanged) -->
-    <div id="settings-panel" class="settings-panel">
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="fixed top-0 right-0 w-80 h-full bg-white shadow-xl p-6 z-10 transition-transform duration-300 transform translate-x-full">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold">Settings</h3>
-            <button id="close-settings-btn" class="close-btn">&times;</button>
+            <button id="close-settings-btn" class="text-xl">&times;</button>
         </div>
         <div class="theme-selector">
             <h4 class="text-lg font-semibold mb-3">Theme Selection</h4>
-            <button class="theme-option-btn" data-theme="default">Default (Cream)</button>
-            <button class="theme-option-btn" data-theme="retro">Retro (Green Terminal)</button>
+            <button class="theme-option-btn w-full" data-theme="default">Default (Cream)</button>
+            <button class="theme-option-btn w-full mt-2" data-theme="retro">Retro (Green Terminal)</button>
         </div>
     </div>
 
@@ -453,6 +495,7 @@
 
         // ----------------- UTILITIES -----------------
         const rollDie = (max) => Math.floor(Math.random() * max) + 1;
+        // Returns the count of 'Heads' (1s) from the coin flips
         const rollCoins = (count) => Array.from({ length: count }, () => Math.random() < 0.5 ? 1 : 0)
                                         .reduce((a,b)=>a+b, 0);
 
@@ -462,12 +505,13 @@
             const p = document.createElement('p');
             p.className = `log-entry ${className}`;
             p.textContent = message;
-            combatLog.prepend(p);
+            // Prepend to combatLog to show newest message at the top
+            combatLog.prepend(p); 
+            // Keep the log manageable
             while(combatLog.children.length > 50) combatLog.removeChild(combatLog.lastChild);
         }
 
-        // ----------------- CONSOLIDATED CHARACTER DATA (Simplified/Moved) -----------------
-        // In a full application, this would be in a separate file, but kept here for the single-file mandate.
+        // ----------------- CONSOLIDATED CHARACTER DATA -----------------
 
         const Characters = [
             // --- 1. Striker (Slow Start: Coin Scaler) ---
@@ -516,6 +560,7 @@
                 uniquePassive: { name: 'Homogenous', effect: 'Adds +2 Coins to Clashes against female opponents.', type: 'ConditionalCoin', condition: { target_gender: 'Female' }, onClashRoll: 'getZectusClashBonus' },
                 abilities: [
                     { name: 'Cycle', type: 'SWITCH', effect: 'Cycles Tri-Sword: Scythe -> Trident -> Hammer. Deals 2 damage on activation.', effectHandler: 'cycleTriSword', baseAttack: 2, dice: 0, coins: 0 },
+                    // Placeholder ability resolved dynamically
                     { name: 'Tri-Sword: Main Attack', id: 'tri_sword_main', type: 'DYNAMIC_ATTACK', resolver: 'resolveZectusDynamicAttack', dice: 8, coins: 1, isZectusMainAttack: true },
                 ]
             },
@@ -530,6 +575,7 @@
                 { name:'Defensive Crouch', type:'DEFENSE', effectHandler:'applyDefenseBonus', baseAttack:0, dice:0, coins:0 }
             ]
         };
+
 
         // ----------------- ANIMATION/VISUAL MODULE -----------------
         const Visuals = {
@@ -629,9 +675,11 @@
                 if (options.length > 0) {
                     options.forEach(opt => {
                         const btn = document.createElement('button');
+                        // Use button-bg for option buttons
                         btn.className = 'px-4 py-2 text-white rounded-md transition duration-200';
                         btn.textContent = opt.text;
                         btn.onclick = () => {
+                            // Disable all options once one is chosen
                             roomOptionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
                             opt.action();
                         };
@@ -647,7 +695,6 @@
 
 
         // ----------------- HANDLER MODULE: UNIQUE EFFECT LOGIC -----------------
-        // ... (UniqueEffectHandlers remain the same as previous versions) ...
         const UniqueEffectHandlers = {
             getStrikerClashBonus(attacker) {
                 const bonus = attacker.baseStats.consecutive_rounds || 0;
@@ -663,6 +710,7 @@
                 log(`${attacker.name} phases and will negate the next incoming hit.`, 'log-special');
             },
             checkShutenMaruHeal(attacker, ability, target, diceRoll) {
+                // If the dice roll for the attack was an 8
                 if (diceRoll === 8) {
                     const heal = attacker.baseStats.lastDamageTaken;
                     if (heal > 0) {
@@ -675,6 +723,7 @@
                 const bonusDamage = rollDie(4);
                 loser.baseStats.currentHP = Math.max(0, loser.baseStats.currentHP - bonusDamage);
                 log(`${winner.name}'s One-Two lands a bonus d4 hit for ${bonusDamage} damage!`, 'log-damage');
+                updateHealthUI();
             },
             executeGrapple(attacker, ability, target) {
                 const rollA = rollDie(ability.dice);
@@ -693,6 +742,7 @@
                 target.baseStats.effects = target.baseStats.effects.filter(e => e !== 'Grappled');
                 attacker.baseStats.isGrappling = false;
                 log(`${target.name} is released from Grapple.`, 'log-special');
+                renderActions(); // Update action buttons (Piledriver)
             },
             getZectusClashBonus(attacker, target) {
                 const isFemale = target.baseStats.gender === attacker.uniquePassive.condition.target_gender;
@@ -721,9 +771,11 @@
                 attacker.baseStats.triSwordState = weapons[next];
                 
                 const damage = ability.baseAttack || 2;
+                // Deal activation damage to the target (enemy)
                 target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - damage);
                 
                 log(`${attacker.name} cycles to ${weapons[next]} and strikes ${target.name} for ${damage} damage.`, 'log-damage');
+                updateHealthUI();
             },
             applyDefenseBonus(attacker, ability, target) {
                 attacker.baseStats.effects.push('DefensePlusTwo');
@@ -731,7 +783,7 @@
             }
         };
 
-        // ----------------- ABILITY TYPE HANDLERS (Now ASYNC) -----------------
+        // ----------------- ABILITY TYPE HANDLERS (ASYNCHRONOUS) -----------------
         const AbilityTypeHandlers = {
             ATTACK: async (attacker, ability, target, diceRoll) => {
                 if (target.baseStats.effects.includes('NegateNextHit')) { 
@@ -740,8 +792,10 @@
                     return; 
                 }
 
+                // --- 1. Dice Roll Animation ---
                 await Visuals.showSlotMachineRoll(ability.dice || 1, diceRoll, `${attacker.name}'s Attack`);
                 
+                // --- 2. Coin Flip Animation ---
                 const coinBonus = rollCoins(ability.coins || 0);
                 await Visuals.showCoinFlips(ability.coins || 0, coinBonus);
                 
@@ -781,9 +835,7 @@
             SWITCH: async (attacker, ability, target) => {
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
                     UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
-                } else {
-                    log(`${attacker.name} attempts a switch but fails.`);
-                }
+                } 
                 renderActions(); // Update buttons immediately for weapon change
                 await delayExecution(1000);
             },
@@ -792,14 +844,14 @@
                 if (ability.resolver && UniqueEffectHandlers[ability.resolver]) {
                     const resolvedAbility = UniqueEffectHandlers[ability.resolver](attacker, ability);
                     
-                    // Recursive call to ATTACK handler, which is now ASYNC
+                    // Recursive call to ATTACK handler
                     await AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, rollDie(resolvedAbility.dice));
                 }
             }
         };
 
 
-        // ----------------- STATUS MECHANICS (Remains the same) -----------------
+        // ----------------- STATUS MECHANICS -----------------
         const Status = {
             resolvePostAction: (attacker, ability, target, diceRoll = null) => {
                 if (ability.statusApplied && !target.baseStats.effects.includes(ability.statusApplied)) {
@@ -817,13 +869,14 @@
             },
 
             resolveTurnStart: (character) => {
+                // Remove temporary effects like DefensePlusTwo, Stagger
                 character.baseStats.effects = character.baseStats.effects.filter(e => 
                     e !== 'DefensePlusTwo' && e !== 'Stagger'
                 );
             }
         };
 
-        // ----------------- COMBAT ENGINE (ORCHESTRATOR - Now ASYNC) -----------------
+        // ----------------- COMBAT ENGINE (ORCHESTRATOR - ASYNCHRONOUS) -----------------
         const Combat = {
             baseClashValue: 5,
 
@@ -836,7 +889,8 @@
                 }
 
                 if (ability.type.includes('ATTACK') && !diceRoll) {
-                    diceRoll = rollDie(ability.dice || 1);
+                    // Only roll dice if it's an attack and not already rolled during clash
+                    diceRoll = rollDie(ability.dice || 1); 
                 }
 
                 if (AbilityTypeHandlers[ability.type]) {
@@ -880,18 +934,21 @@
                 log(`Clash Rolls: P(${playerRoll}, D:${pDiceRoll}, C:${pCoinBonus}) vs E(${enemyRoll}, D:${eDiceRoll}, C:${eCoinBonus})`);
 
                 // 3. Visualize Clash
+                // Show the combined result of the roll (Dice + Coin) in the clash animation
                 await Visuals.showClashAnimation(playerRoll, enemyRoll);
                 
                 if (playerRoll >= enemyRoll) {
                     log(`${player.name} wins the clash!`, 'log-win');
-                    await this.executeAction(player, playerAbility, enemy, pDiceRoll); // Await action
+                    // Execute the action with the roll result used in the clash
+                    await this.executeAction(player, playerAbility, enemy, pDiceRoll); 
                     
                     if (player.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[player.uniquePassive.onClashWin](player, enemy);
                     }
                 } else {
                     log(`${enemy.name} wins the clash!`, 'log-loss');
-                    await this.executeAction(enemy, enemyAbility, player, eDiceRoll); // Await action
+                    // Execute the action with the roll result used in the clash
+                    await this.executeAction(enemy, enemyAbility, player, eDiceRoll); 
                     
                     if (enemy.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[enemy.uniquePassive.onClashWin](enemy, player);
@@ -900,7 +957,7 @@
             }
         };
 
-        // ----------------- GAME FLOW (Now ASYNC) -----------------
+        // ----------------- GAME FLOW (ASYNCHRONOUS) -----------------
         async function executeAbility(ability) {
             if (gameState.isResolving) return;
             gameState.isResolving = true;
@@ -926,10 +983,11 @@
             const eIsAttack = e.type === 'ATTACK' || e.type === 'DYNAMIC_ATTACK';
 
             if (pIsAttack && eIsAttack) {
-                await Combat.handleClash(p, e); // Await clash resolution
+                // Both attack: Clash
+                await Combat.handleClash(p, e); 
             }
             else {
-                // Determine turn order based on Speed
+                // One or both is not an attack: Sequential
                 let [first, second] = (player.baseStats.speed >= enemy.baseStats.speed)
                     ? [player, enemy]
                     : [enemy, player];
@@ -941,10 +999,16 @@
                 // Execute First action (Await the action for visualization)
                 await Combat.executeAction(first, firstAbility, second);
 
+                // Check for immediate defeat before the second action
+                if (player.baseStats.currentHP <= 0 || enemy.baseStats.currentHP <= 0) {
+                     await endTurnCleanup();
+                     return;
+                }
+                
                 // Execute Second action if alive and not staggered
                 const secondIsStaggered = second.baseStats.effects.includes('Stagger');
                 if (second.baseStats.currentHP > 0 && secondAbility.type !== 'NONE' && !secondIsStaggered) {
-                    await Combat.executeAction(second, secondAbility, first); // Await action
+                    await Combat.executeAction(second, secondAbility, first); 
                 } else if (secondIsStaggered) {
                     log(`${second.name} was Staggered and could not act!`);
                 }
@@ -958,14 +1022,18 @@
             // Give a moment for the last action log/HP update to sink in
             await delayExecution(500); 
 
+            // Clear temporary effects
             Status.resolveTurnStart(gameState.player);
             Status.resolveTurnStart(gameState.enemy);
             
+            // Run end-of-turn passives
             if (gameState.player.uniquePassive?.onTurnEnd) {
                 const handlerName = gameState.player.uniquePassive.onTurnEnd;
                 UniqueEffectHandlers[handlerName](gameState.player);
             }
+            // (No end turn passive for Goblin enemy in this version)
 
+            // Check for victory/defeat
             if (gameState.player.baseStats.currentHP <= 0) {
                 log(`${gameState.player.name} has been defeated! Game Over.`, 'log-loss');
                 dialogueText.textContent = 'GAME OVER';
@@ -977,9 +1045,10 @@
                 dialogueText.textContent = 'VICTORY!';
                 Visuals.setDialogue(`You defeated the ${gameState.enemy.name}! What do you do next?`, [
                     { text: 'Loot Corpse (Not implemented)', action: () => log('You search the goblin. Nothing useful found.') },
-                    { text: 'Continue to Next Room', action: () => setView('select') } // Placeholder for next room
+                    { text: 'Continue to Next Room', action: () => setView('select') } 
                 ]);
             } else {
+                // Continue to next turn
                 gameState.turn++;
                 gameState.playerAction = null;
                 gameState.enemyAction = null;
@@ -1011,8 +1080,9 @@
             // Simple Goblin AI: 50/50 attack/defense
             const attack = enemy.abilities.find(a => a.type === 'ATTACK');
             const defense = enemy.abilities.find(a => a.type === 'DEFENSE');
+            const isDefensive = enemy.baseStats.effects.includes('DefensePlusTwo');
 
-            if (Math.random() < 0.5 && defense) {
+            if (Math.random() < 0.5 && defense && !isDefensive) {
                 gameState.enemyAction = defense;
             } else if (attack) {
                 gameState.enemyAction = attack;
@@ -1031,6 +1101,13 @@
                 ui.hpBar.style.width = perc + '%';
                 ui.hpText.textContent = `${entity.baseStats.currentHP}/${entity.baseStats.maxHP}`;
                 
+                // Dynamic styling for HP bar based on percentage
+                let hpColor = 'var(--hp-color)';
+                if (perc < 30) hpColor = '#ff0000'; // Low HP Warning
+                else if (perc < 60) hpColor = '#ffbf00'; // Mid HP Warning
+                ui.hpBar.style.backgroundColor = hpColor;
+
+
                 const effectsText = entity.baseStats.effects.length ? ` (${entity.baseStats.effects.join(', ')})` : '';
                 ui.statusText.textContent = `Status: ${entity.baseStats.status || 'Active'}${effectsText}`;
             };
@@ -1042,6 +1119,7 @@
             actionButtonsDiv.innerHTML = '';
             
             const isEnemyGrappled = gameState.enemy?.baseStats?.effects?.includes('Grappled');
+            const currentWeapon = gameState.player?.baseStats?.triSwordState;
             
             const visibleAbilities = gameState.player?.abilities?.filter(a => !a.isHidden) || [];
 
@@ -1049,26 +1127,23 @@
                 const btn = document.createElement('button');
                 btn.classList.add('combat-btn');
                 let displayName = ability.name;
+                let isDisabled = gameState.isResolving;
 
+                // Conditional enabling/disabling
                 if (ability.name === 'Piledriver') {
-                    btn.disabled = !isEnemyGrappled || gameState.isResolving;
+                    isDisabled = isDisabled || !isEnemyGrappled;
                     if (isEnemyGrappled) {
                         btn.classList.add('combo-ready');
-                    } else {
-                        btn.classList.remove('combo-ready');
                     }
                 }
                 
-                if (gameState.player.id === 'zectus' && ability.isZectusMainAttack) {
-                    const currentWeapon = gameState.player.baseStats.triSwordState;
+                // Zectus dynamic attack name
+                if (gameState.player?.id === 'zectus' && ability.isZectusMainAttack) {
                     displayName = `Tri-Sword: ${currentWeapon}`;
                     btn.classList.add('active-weapon-btn'); 
                 }
 
-                if (gameState.isResolving) {
-                    btn.disabled = true;
-                }
-
+                btn.disabled = isDisabled;
                 btn.textContent = displayName;
                 btn.onclick = () => executeAbility(ability);
                 actionButtonsDiv.appendChild(btn);
@@ -1097,6 +1172,7 @@
 
         function startCombat(playerId) {
             const playerTemplate = Characters.find(c => c.id === playerId);
+            // Deep copy templates for new game session
             gameState.player = JSON.parse(JSON.stringify(playerTemplate));
             gameState.enemy = JSON.parse(JSON.stringify(ENEMY_GOBLIN));
             
@@ -1146,20 +1222,20 @@
         // ----------------- INITIALIZATION -----------------
 
         function init() {
+            // Apply theme from storage or default
             applyTheme(localStorage.getItem('gameTheme')||'default'); 
             setView('menu'); 
             renderCharacterSelect();
 
             newGameBtn.addEventListener('click', () => setView('select'));
 
-            openSettingsBtn.addEventListener('click', toggleSettingsPanel);
-            closeSettingsBtn.addEventListener('click', toggleSettingsPanel);
+            openSettingsBtn.addEventListener('click', () => settingsPanel.classList.add('open'));
+            closeSettingsBtn.addEventListener('click', () => settingsPanel.classList.remove('open'));
             
             themeOptionBtns.forEach(btn => {
                 btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
             });
             
-            // Initial Dialogue for Menu
             Visuals.setDialogue('Welcome to the Chronicles of Heroes. Choose New Game to begin your adventure!');
         }
 
