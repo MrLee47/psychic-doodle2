@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chronicles of Heroes: Visualized Combat</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <!-- CONSOLIDATED STYLES -->
     <style>
@@ -229,20 +229,11 @@
 
         .slot-result {
             font-size: 4rem;
-            color: var(--hp-color);
+            color: white; /* Default spin color */
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: color 0.1s;
         }
         
-        /* Spinning Animation */
-        @keyframes spin-roll {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-1000%); }
-        }
-
-        .slot-spinning {
-            animation: spin-roll 0.1s linear infinite;
-        }
-
         /* Coin Flip Visualizer */
         .coin-visualizer {
             display: flex;
@@ -285,6 +276,8 @@
             margin: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: all 0.3s;
+            min-width: 250px; /* Ensure labels don't jump when numbers change */
+            text-align: center;
         }
 
         .clash-player { background-color: var(--mp-color); color: white; }
@@ -296,6 +289,12 @@
         }
         .clash-loser {
             opacity: 0.4;
+        }
+        
+        /* Specific Grapple Clash Styles */
+        .clash-grapple-roll {
+            background-color: #8a2be2; /* BlueViolet */
+            color: white;
         }
 
         /* Standard Button Styles (Applied to existing elements) */
@@ -331,6 +330,16 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         }
+        
+        /* Settings Panel Fix */
+        #settings-panel.open {
+            transform: translateX(0);
+        }
+        
+        /* Settings Panel Base (Hidden by default using translate-x-full in HTML) */
+        #settings-panel {
+            transition: transform 0.3s ease-in-out;
+        }
 
     </style>
 </head>
@@ -352,7 +361,7 @@
     <div id="character-select-screen" class="hidden min-h-screen flex flex-col items-center p-4 w-full">
         <div class="container w-full max-w-4xl card">
             <h2 class="text-3xl mt-4 mb-6">Select Your Hero</h2>
-            <div id="char-select-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            <div id="char-select-cards" class="grid grid-cols 1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                 <!-- Character Cards Rendered Here -->
             </div>
         </div>
@@ -425,8 +434,8 @@
         </div>
     </div>
 
-    <!-- Settings Panel -->
-    <div id="settings-panel" class="fixed top-0 right-0 w-80 h-full bg-white shadow-xl p-6 z-10 transition-transform duration-300 transform translate-x-full">
+    <!-- Settings Panel (Fixed position, hidden by default via transform-x-full) -->
+    <div id="settings-panel" class="fixed top-0 right-0 w-80 h-full bg-white shadow-xl p-6 z-10 transform translate-x-full">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold">Settings</h3>
             <button id="close-settings-btn" class="text-xl">&times;</button>
@@ -535,6 +544,7 @@
                 uniquePassive: { name: 'The Old One, Two', effect: 'Roll an extra d4 damage on any successful clash.', type: 'ClashWinBonus', onClashWin: 'getBalterClashWinBonus' },
                 abilities: [
                     { name: 'Haymaker', type: 'ATTACK', damageType: 'Blunt', baseAttack: 7, dice: 10, coins: 1 },
+                    // Grapple now requires effectHandler to use the new animation/contest logic
                     { name: 'Grapple', type: 'SPECIAL', effect: 'Roll d10 vs target\'s d8. On success, applies Grappled status.', effectHandler: 'executeGrapple', dice: 10, coins: 0, statusApplied: 'Grappled' },
                     { name: 'Piledriver', type: 'ATTACK', damageType: 'Physical', baseAttack: 12, dice: 12, coins: 0, requiredTargetStatus: 'Grappled', postExecutionHandler: 'removeGrappleStatus' }
                 ]
@@ -557,7 +567,7 @@
                 name: 'Zectus Maximus',
                 description: 'A versatile warrior whose damage type changes with his weapon form.',
                 baseStats: { maxHP: 105, defense: 2, level: 1, speed: 2, effects: [], gender: 'Male', triSwordState: 'Scythe' },
-                uniquePassive: { name: 'Homogenous', effect: 'Adds +2 Coins to Clashes against female opponents.', type: 'ConditionalCoin', condition: { target_gender: 'Female' }, onClashRoll: 'getZectusClashBonus' },
+                uniquePassive: { name: 'Homogenous', effect: 'Adds +2 Coins to Clashes against female opponents, and doubles damage on clash win.', type: 'ConditionalCoin', condition: { target_gender: 'Female' }, onClashRoll: 'getZectusClashBonus' },
                 abilities: [
                     { name: 'Cycle', type: 'SWITCH', effect: 'Cycles Tri-Sword: Scythe -> Trident -> Hammer. Deals 2 damage on activation.', effectHandler: 'cycleTriSword', baseAttack: 2, dice: 0, coins: 0 },
                     // Placeholder ability resolved dynamically
@@ -591,18 +601,32 @@
                 wheel.className = 'slot-wheel flex justify-center items-center';
 
                 const resultDisplay = document.createElement('div');
-                resultDisplay.className = 'slot-result slot-spinning';
+                resultDisplay.className = 'slot-result'; 
                 resultDisplay.textContent = '...';
                 
                 wheel.appendChild(resultDisplay);
                 container.appendChild(wheel);
                 rollAnimationContainer.appendChild(container);
 
-                await delayExecution(1500); // Animation Spin time
-
-                resultDisplay.classList.remove('slot-spinning');
-                resultDisplay.textContent = result;
-                resultDisplay.style.color = 'var(--log-damage)';
+                const spinDuration = 1500;
+                const intervalTime = 50;
+                let startTime = Date.now();
+                
+                // Use a Promise to control the animation and delay
+                await new Promise(resolve => {
+                    let rollInterval = setInterval(() => {
+                        if (Date.now() - startTime >= spinDuration) {
+                            clearInterval(rollInterval);
+                            resultDisplay.textContent = result; // Set final result
+                            resultDisplay.style.color = 'var(--log-damage)'; // Final color
+                            resolve();
+                        } else {
+                            // Rapidly cycle placeholder numbers
+                            resultDisplay.textContent = Math.floor(Math.random() * diceSize) + 1;
+                            resultDisplay.style.color = 'white'; // Spin color
+                        }
+                    }, intervalTime);
+                });
 
                 await delayExecution(1000); // Result display time
             },
@@ -636,34 +660,62 @@
                 await delayExecution(2000 + coinCount * 200); // Wait for flips
             },
 
-            async showClashAnimation(pRoll, eRoll) {
+            // Unified function for Clash and Grapple contests
+            async showClashAnimation(pRoll, eRoll, isGrapple = false) {
                 rollAnimationContainer.innerHTML = '';
-                await Visuals.setDialogue('Contesting the Clash...');
+                const prompt = isGrapple ? 'Contesting Grapple Attempt...' : 'Contesting the Clash...';
+                await Visuals.setDialogue(prompt);
 
                 const container = document.createElement('div');
                 container.className = 'flex flex-col items-center justify-center space-y-4';
                 
+                // Add specific class for grapple roll visuals
+                const pContesterClass = isGrapple ? 'clash-grapple-roll' : 'clash-player';
+                const eContesterClass = isGrapple ? 'clash-grapple-roll' : 'clash-enemy';
+                
                 const pContester = document.createElement('div');
-                pContester.className = 'clash-contester clash-player';
-                pContester.textContent = `${gameState.player.name}: ${pRoll}`;
+                pContester.className = `clash-contester ${pContesterClass}`;
+                pContester.textContent = `${gameState.player.name}: ???`;
 
                 const eContester = document.createElement('div');
-                eContester.className = 'clash-contester clash-enemy';
-                eContester.textContent = `${gameState.enemy.name}: ${eRoll}`;
+                eContester.className = `clash-contester ${eContesterClass}`;
+                eContester.textContent = `${gameState.enemy.name}: ???`;
                 
-                const winner = pRoll >= eRoll ? pContester : eContester;
-                const loser = pRoll >= eRoll ? eContester : pContester;
-
                 container.appendChild(pContester);
                 container.appendChild(document.createElement('p')).textContent = 'VS';
                 container.appendChild(eContester);
                 
                 rollAnimationContainer.appendChild(container);
 
-                await delayExecution(1000);
+                // Rapid number cycling for Clash
+                const spinDuration = 1500;
+                const intervalTime = 50;
+                let startTime = Date.now();
+                const maxClashValue = isGrapple ? 12 : 20; // Use appropriate max value for spin animation
 
-                winner.classList.add('clash-winner');
-                loser.classList.add('clash-loser');
+                await new Promise(resolve => {
+                    let clashInterval = setInterval(() => {
+                        if (Date.now() - startTime >= spinDuration) {
+                            clearInterval(clashInterval);
+                            
+                            // Set final results
+                            pContester.textContent = `${gameState.player.name}: ${pRoll}`;
+                            eContester.textContent = `${gameState.enemy.name}: ${eRoll}`;
+                            
+                            // Apply winner/loser classes
+                            const winner = pRoll >= eRoll ? pContester : eContester;
+                            const loser = pRoll >= eRoll ? eContester : pContester;
+                            winner.classList.add('clash-winner');
+                            loser.classList.add('clash-loser');
+                            
+                            resolve();
+                        } else {
+                            // Rapidly cycle placeholder numbers
+                            pContester.textContent = `${gameState.player.name}: ${Math.floor(Math.random() * maxClashValue) + 1}`;
+                            eContester.textContent = `${gameState.enemy.name}: ${Math.floor(Math.random() * maxClashValue) + 1}`;
+                        }
+                    }, intervalTime);
+                });
 
                 await delayExecution(1500);
             },
@@ -725,18 +777,24 @@
                 log(`${winner.name}'s One-Two lands a bonus d4 hit for ${bonusDamage} damage!`, 'log-damage');
                 updateHealthUI();
             },
-            executeGrapple(attacker, ability, target) {
-                const rollA = rollDie(ability.dice);
-                const rollT = rollDie(target.baseStats.grappleDie || 8);
+            // Grapple now uses the new visual contest
+            async executeGrapple(attacker, ability, target) {
+                const rollA = rollDie(ability.dice); // Balter's d10
+                const rollT = rollDie(target.baseStats.grappleDie || 8); // Target's d6 or d8
+
+                // 1. Visualize Grapple Contest
+                await Visuals.showClashAnimation(rollA, rollT, true); // true for isGrapple
+                
                 log(`${attacker.name} attempts Grapple (Roll: ${rollA} vs ${target.name} Defense Roll: ${rollT})`);
 
                 if(rollA > rollT) { 
                     target.baseStats.effects.push('Grappled');
                     attacker.baseStats.isGrappling = true;
-                    log(`${attacker.name} Grapples ${target.name}!`, 'log-special');
+                    log(`${attacker.name} successfully Grapples ${target.name}!`, 'log-special');
                 } else {
                     log(`${attacker.name} fails Grapple on ${target.name}.`);
                 }
+                renderActions(); // Update action buttons (Piledriver)
             },
             removeGrappleStatus(attacker, ability, target) {
                 target.baseStats.effects = target.baseStats.effects.filter(e => e !== 'Grappled');
@@ -785,29 +843,50 @@
 
         // ----------------- ABILITY TYPE HANDLERS (ASYNCHRONOUS) -----------------
         const AbilityTypeHandlers = {
-            ATTACK: async (attacker, ability, target, diceRoll) => {
+            ATTACK: async (attacker, ability, target, diceRoll, context = {}) => {
+                
+                const damageMultiplier = context.damageMultiplier || 1; // Zectus passive check
+                
                 if (target.baseStats.effects.includes('NegateNextHit')) { 
                     log(`${target.name} Phases! Negating hit.`, 'log-win'); 
                     target.baseStats.effects = target.baseStats.effects.filter(e => e !== 'NegateNextHit'); 
                     return; 
                 }
 
-                // --- 1. Dice Roll Animation ---
-                await Visuals.showSlotMachineRoll(ability.dice || 1, diceRoll, `${attacker.name}'s Attack`);
+                // --- 1. Dice Roll Animation (already done in clash, but needed for sequential attack) ---
+                if (!context.clashWinner) { // Only animate dice roll if it wasn't part of a clash
+                    await Visuals.showSlotMachineRoll(ability.dice || 1, diceRoll, `${attacker.name}'s Attack`);
+                }
                 
-                // --- 2. Coin Flip Animation ---
-                const coinBonus = rollCoins(ability.coins || 0);
-                await Visuals.showCoinFlips(ability.coins || 0, coinBonus);
+                // --- 2. Coin Flip Logic (ONLY FOR STRIKER'S PASSIVE IN SEQUENTIAL ATTACKS) ---
+                let totalCoinsToFlip = 0;
+                let coinBonus = 0;
+
+                if (attacker.id === 'striker' && !context.clashWinner) {
+                    // Striker's passive grants coin damage bonus outside of Clash (in sequential attacks)
+                    totalCoinsToFlip = attacker.baseStats.consecutive_rounds || 0;
+                    if (totalCoinsToFlip > 0) {
+                        coinBonus = rollCoins(totalCoinsToFlip);
+                        await Visuals.showCoinFlips(totalCoinsToFlip, coinBonus);
+                    }
+                }
                 
+                // --- 3. Damage Calculation ---
                 let defense = target.baseStats.defense;
                 if(target.baseStats.effects.includes('DefensePlusTwo')) defense += 2;
                 
-                let dmg = Math.max(0, (ability.baseAttack || 0) + coinBonus - defense);
-                
-                if (target.id === 'shutenmaru') target.baseStats.lastDamageTaken = dmg;
+                // Damage = (Base Attack + Coin Bonus [0 for non-Striker in sequential] - Defense) * Multiplier
+                let baseDmg = Math.max(0, (ability.baseAttack || 0) + coinBonus - defense);
+                let finalDmg = Math.round(baseDmg * damageMultiplier);
 
-                target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - dmg);
-                log(`${attacker.name} attacks with ${ability.name}. Hits for ${dmg} (${ability.damageType})`, 'log-damage');
+                if (damageMultiplier > 1) {
+                    log(`${attacker.name}'s passive doubles damage to ${finalDmg} against ${target.name}!`, 'log-win');
+                }
+
+                if (target.id === 'shutenmaru') target.baseStats.lastDamageTaken = finalDmg;
+
+                target.baseStats.currentHP = Math.max(0, target.baseStats.currentHP - finalDmg);
+                log(`${attacker.name} attacks with ${ability.name}. Hits for ${finalDmg} (${ability.damageType})`, 'log-damage');
                 updateHealthUI();
                 await delayExecution(500);
 
@@ -825,7 +904,8 @@
 
             SPECIAL: async (attacker, ability, target) => {
                 if (ability.effectHandler && UniqueEffectHandlers[ability.effectHandler]) {
-                    UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
+                    // Special abilities (like Grapple) handle their own execution flow
+                    await UniqueEffectHandlers[ability.effectHandler](attacker, ability, target);
                 } else {
                     log(`${attacker.name} uses a generic special ability.`);
                 }
@@ -840,12 +920,12 @@
                 await delayExecution(1000);
             },
 
-            DYNAMIC_ATTACK: async (attacker, ability, target) => {
+            DYNAMIC_ATTACK: async (attacker, ability, target, diceRoll, context = {}) => {
                 if (ability.resolver && UniqueEffectHandlers[ability.resolver]) {
                     const resolvedAbility = UniqueEffectHandlers[ability.resolver](attacker, ability);
                     
-                    // Recursive call to ATTACK handler
-                    await AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, rollDie(resolvedAbility.dice));
+                    // Recursive call to ATTACK handler, passing context
+                    await AbilityTypeHandlers.ATTACK(attacker, resolvedAbility, target, diceRoll, context);
                 }
             }
         };
@@ -880,7 +960,7 @@
         const Combat = {
             baseClashValue: 5,
 
-            async executeAction(attacker, ability, target, diceRoll = null) {
+            async executeAction(attacker, ability, target, diceRoll = null, context = {}) {
                 if (!ability || ability.type === 'NONE') return;
 
                 if (ability.requiredTargetStatus && !target.baseStats.effects.includes(ability.requiredTargetStatus)) {
@@ -895,7 +975,7 @@
 
                 if (AbilityTypeHandlers[ability.type]) {
                     // Await the handler for animation completion
-                    await AbilityTypeHandlers[ability.type](attacker, ability, target, diceRoll);
+                    await AbilityTypeHandlers[ability.type](attacker, ability, target, diceRoll, context);
                 } else {
                     log(`ERROR: Unknown ability type: ${ability.type}`);
                     await delayExecution(500);
@@ -918,13 +998,14 @@
                     eClashBonus += UniqueEffectHandlers[handlerName](enemy, player);
                 }
                 
-                // 2. Perform Rolls
-                const pDiceRoll = rollDie(playerAbility.dice || 1);
-                const eDiceRoll = rollDie(enemyAbility.dice || 1);
-
+                // Base coins from the ability itself are ALWAYS added for Clash Roll
                 const pCoins = (playerAbility.coins || 0) + pClashBonus;
                 const eCoins = (enemyAbility.coins || 0) + eClashBonus;
 
+                // 2. Perform Rolls and Coin Flips for Clash
+                const pDiceRoll = rollDie(playerAbility.dice || 1);
+                const eDiceRoll = rollDie(enemyAbility.dice || 1);
+                
                 const pCoinBonus = rollCoins(pCoins);
                 const eCoinBonus = rollCoins(eCoins);
 
@@ -933,31 +1014,43 @@
 
                 log(`Clash Rolls: P(${playerRoll}, D:${pDiceRoll}, C:${pCoinBonus}) vs E(${enemyRoll}, D:${eDiceRoll}, C:${eCoinBonus})`);
 
-                // 3. Visualize Clash
-                // Show the combined result of the roll (Dice + Coin) in the clash animation
+                // 3. Visualize Clash (Awaits animation)
                 await Visuals.showClashAnimation(playerRoll, enemyRoll);
+                
+                let winner, winnerAbility, winnerDiceRoll, loser, damageContext = { clashWinner: true, damageMultiplier: 1 };
                 
                 if (playerRoll >= enemyRoll) {
                     log(`${player.name} wins the clash!`, 'log-win');
-                    // Execute the action with the roll result used in the clash
-                    await this.executeAction(player, playerAbility, enemy, pDiceRoll); 
+                    winner = player; winnerAbility = playerAbility; winnerDiceRoll = pDiceRoll; loser = enemy;
                     
                     if (player.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[player.uniquePassive.onClashWin](player, enemy);
                     }
+                    
+                    // Zectus Passive: Double Damage check
+                    if (player.id === 'zectus' && enemy.baseStats.gender === 'Female') {
+                        damageContext.damageMultiplier = 2;
+                    }
                 } else {
                     log(`${enemy.name} wins the clash!`, 'log-loss');
-                    // Execute the action with the roll result used in the clash
-                    await this.executeAction(enemy, enemyAbility, player, eDiceRoll); 
+                    winner = enemy; winnerAbility = enemyAbility; winnerDiceRoll = eDiceRoll; loser = player;
                     
                     if (enemy.uniquePassive?.onClashWin) {
                         UniqueEffectHandlers[enemy.uniquePassive.onClashWin](enemy, player);
                     }
+                    
+                    // Zectus Passive: Double Damage check (Not relevant for the Goblin enemy, but good practice)
+                    if (enemy.id === 'zectus' && player.baseStats.gender === 'Female') {
+                        damageContext.damageMultiplier = 2;
+                    }
                 }
+                
+                // Execute the winning action with the roll result and context
+                await this.executeAction(winner, winnerAbility, loser, winnerDiceRoll, damageContext);
             }
         };
 
-        // ----------------- GAME FLOW (ASYNCHRONOUS) -----------------
+        // ----------------- GAME FLOW (ORCHESTRATOR - ASYNCHRONOUS) -----------------
         async function executeAbility(ability) {
             if (gameState.isResolving) return;
             gameState.isResolving = true;
@@ -979,8 +1072,8 @@
             Visuals.clearAnimations();
             log(`--- Turn ${gameState.turn} ---`, 'log-special');
 
-            const pIsAttack = p.type === 'ATTACK' || p.type === 'DYNAMIC_ATTACK';
-            const eIsAttack = e.type === 'ATTACK' || e.type === 'DYNAMIC_ATTACK';
+            const pIsAttack = p.type.includes('ATTACK'); // ATTACK or DYNAMIC_ATTACK
+            const eIsAttack = e.type.includes('ATTACK');
 
             if (pIsAttack && eIsAttack) {
                 // Both attack: Clash
@@ -995,9 +1088,13 @@
                 let [firstAbility, secondAbility] = (first === player)
                     ? [p, e]
                     : [e, p];
+                
+                let [firstTarget, secondTarget] = (first === player)
+                    ? [enemy, player]
+                    : [player, enemy];
 
-                // Execute First action (Await the action for visualization)
-                await Combat.executeAction(first, firstAbility, second);
+                // Execute First action (Await the action for visualization). No clash context.
+                await Combat.executeAction(first, firstAbility, firstTarget);
 
                 // Check for immediate defeat before the second action
                 if (player.baseStats.currentHP <= 0 || enemy.baseStats.currentHP <= 0) {
@@ -1008,7 +1105,7 @@
                 // Execute Second action if alive and not staggered
                 const secondIsStaggered = second.baseStats.effects.includes('Stagger');
                 if (second.baseStats.currentHP > 0 && secondAbility.type !== 'NONE' && !secondIsStaggered) {
-                    await Combat.executeAction(second, secondAbility, first); 
+                    await Combat.executeAction(second, secondAbility, secondTarget); 
                 } else if (secondIsStaggered) {
                     log(`${second.name} was Staggered and could not act!`);
                 }
@@ -1078,7 +1175,7 @@
             }
 
             // Simple Goblin AI: 50/50 attack/defense
-            const attack = enemy.abilities.find(a => a.type === 'ATTACK');
+            const attack = enemy.abilities.find(a => a.type.includes('ATTACK'));
             const defense = enemy.abilities.find(a => a.type === 'DEFENSE');
             const isDefensive = enemy.baseStats.effects.includes('DefensePlusTwo');
 
@@ -1216,7 +1313,11 @@
             gameState.currentTheme = theme;
         }
 
-        function toggleSettingsPanel() { settingsPanel.classList.toggle('open'); }
+        function toggleSettingsPanel(e) { 
+            // Prevents button from being clicked if panel is already resolving state
+            if (e) e.preventDefault(); 
+            settingsPanel.classList.toggle('open'); 
+        }
 
 
         // ----------------- INITIALIZATION -----------------
@@ -1229,8 +1330,9 @@
 
             newGameBtn.addEventListener('click', () => setView('select'));
 
-            openSettingsBtn.addEventListener('click', () => settingsPanel.classList.add('open'));
-            closeSettingsBtn.addEventListener('click', () => settingsPanel.classList.remove('open'));
+            // FIX: Settings menu now correctly toggles the 'open' class
+            openSettingsBtn.addEventListener('click', toggleSettingsPanel);
+            closeSettingsBtn.addEventListener('click', toggleSettingsPanel);
             
             themeOptionBtns.forEach(btn => {
                 btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
